@@ -21,7 +21,7 @@
 | 파일 | 1차는 **애플리케이션 서버에 저장**하고 서버 URL로 제공한다(Laravel `public` 디스크). 이후 **S3 또는 Cloudflare R2로 전환**한다. DB에는 저장소 기준 상대 경로만 저장하고(`*_path`, 예: `games/15/cover.webp`), URL은 `Storage::url()`로 만든다. 그래야 전환할 때 DB 데이터를 고치지 않고 디스크 설정만 바꾸면 된다 |
 | 집계 컬럼 | `*_count`, `rating_avg` 등은 원본 데이터에서 다시 계산할 수 있는 캐시다. 커밋 후 갱신한다 |
 
-Laravel 기본 테이블(`sessions`, `cache`, `jobs`, `failed_jobs`, `personal_access_tokens`)은 프레임워크 기본 구조를 그대로 쓰고 이 문서에서는 생략한다.
+Laravel 기본 테이블(`sessions`, `cache`, `jobs`, `failed_jobs`, `password_reset_tokens`, `personal_access_tokens`)은 프레임워크 기본 구조를 그대로 쓰고 이 문서에서는 생략한다.
 
 ## 2. 전체 관계도
 
@@ -75,7 +75,9 @@ erDiagram
 ### users
 | 컬럼 | 타입 | 제약 | 설명 |
 |---|---|---|---|
-| email | varchar(255) | NULL, UNIQUE | 소셜 제공자가 준 이메일 (Apple 중계 주소 가능). 로그인 식별에는 쓰지 않음 (ADR-003) |
+| email | varchar(255) | NULL, UNIQUE | 소셜 제공자가 준 이메일 (Apple 중계 주소 가능). 소셜 로그인 식별에는 쓰지 않음 (ADR-003). 이메일 가입 추가 시 로그인 ID |
+| email_verified_at | timestamptz | NULL | 이메일 인증 시각. 소셜 제공자가 인증한 이메일이면 생성 시 기록 |
+| password | varchar(255) | **NULL** | 지금은 항상 NULL. 이메일·비밀번호 가입 추가 대비 (ADR-003 §8) |
 | nickname | varchar(20) | NULL, UNIQUE `lower(nickname)` | 표시 이름, 대소문자 구분 없이 중복 불가. 가입 완료 시 설정. 입력은 **2~12자**로 검증 (REQ-004). 컬럼 길이 20은 탈퇴 익명값용 |
 | status | varchar(20) | CHECK `pending`/`active`/`suspended`/`withdrawn` | `pending`은 가입 미완료 (약관·닉네임 전) |
 | signup_completed_at | timestamptz | NULL | 가입 완료 시각. 가입 포인트 지급 기준 |
@@ -88,7 +90,7 @@ erDiagram
 | withdrawn_at | timestamptz | NULL | 탈퇴 시각 |
 | remember_token | varchar(100) | NULL | Laravel 기본 (웹 로그인 유지) |
 
-- 비밀번호 컬럼은 없다. Google·Apple 로그인만 사용한다 (ADR-003).
+- 지금은 Google·Apple 로그인만 사용하므로 `password`는 비워 둔다. 이메일·비밀번호 가입을 추가할 때 DB 구조를 바꾸지 않도록 컬럼과 `password_reset_tokens` 테이블은 유지한다 (ADR-003 §8).
 - 탈퇴 시 `email`은 NULL, `nickname`은 `withdrawn_{id}` 형식의 익명값으로 바꾸고, `social_accounts`를 삭제한다 (§12).
 - `pending` 상태로 7일이 지난 계정은 스케줄러가 삭제한다 (ADR-003 §4).
 
@@ -452,7 +454,7 @@ erDiagram
 | `notifications` | 직접 설계 | Laravel 기본 알림 테이블 | 프레임워크 기능을 그대로 사용 |
 | 파일 저장소 | S3 호환 스토리지, `*_url` 저장 | 1차는 서버 저장, 이후 S3 또는 Cloudflare R2로 전환. `*_path`(상대 경로) 저장 | 초기 비용과 설정 부담을 줄임. 상대 경로만 저장하므로 저장소를 바꿔도 DB 데이터 수정 불필요 |
 | 포인트·리뷰 관련 | — | 각 정책 문서의 변경 제안 반영 | 포인트 정책 §11, 리뷰 정책 §13 |
-| 로그인 | 이메일·비밀번호 | Google·Apple 소셜 로그인. `users.password` 제거, `social_accounts` 추가, 가입 완료 상태(`pending`) 추가 | ADR-003 |
+| 로그인 | 이메일·비밀번호 | Google·Apple 소셜 로그인. `users.password`는 NULL로 유지(이메일 가입 확장 대비), `social_accounts` 추가, 가입 완료 상태(`pending`) 추가 | ADR-003 |
 | 신규 | — | `game_release_dates.date_precision`, `point_transactions.service_date`, `events.entry_cost_points`, `event_entries.is_winner` | 출시일 표기, 일일 한도 계산, 포인트 사용처(이벤트 응모) |
 
 ## 12. 결정 사항
