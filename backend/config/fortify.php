@@ -131,7 +131,7 @@ return [
     |
     */
 
-    'views' => true,
+    'views' => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -160,18 +160,8 @@ return [
     |
     */
 
-    'features' => [
-        Features::registration(),
-        Features::resetPasswords(),
-        Features::emailVerification(),
-        Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => true,
-            // 'window' => 0
-        ]),
-        Features::passkeys([
-            'confirmPassword' => true,
-        ]),
-    ],
+    // 지금은 Google·Apple 로그인만 사용한다 (ADR-003). 이메일·비밀번호 가입을 추가할 때
+    // 필요한 기능(registration, resetPasswords, emailVerification)만 켠다 (ADR-003 §8).
+    'features' => [],
 
 ];

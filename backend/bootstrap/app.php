@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureSignupCompleted;
+use App\Http\Middleware\EnsureSignupPending;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -16,6 +18,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+
+        // Apple 로그인은 콜백을 다른 사이트에서 POST(form_post)로 보낸다 (ADR-003)
+        $middleware->validateCsrfTokens(except: ['auth/apple/callback']);
+
+        $middleware->alias([
+            'signup.completed' => EnsureSignupCompleted::class,
+            'signup.pending' => EnsureSignupPending::class,
+        ]);
 
         $middleware->web(append: [
             HandleAppearance::class,

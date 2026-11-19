@@ -7,20 +7,15 @@ import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
-import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: '프로필',
         href: editProfile(),
     },
     {
-        title: 'Security',
-        href: editSecurity(),
-    },
-    {
-        title: 'Appearance',
+        title: '화면',
         href: editAppearance(),
     },
 ];
@@ -30,10 +25,7 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
 
 <template>
     <div class="px-4 py-6">
-        <Heading
-            title="Settings"
-            description="Manage your profile and account settings"
-        />
+        <Heading title="설정" description="프로필과 화면 설정을 관리합니다" />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">
             <aside class="w-full max-w-xl lg:w-48">

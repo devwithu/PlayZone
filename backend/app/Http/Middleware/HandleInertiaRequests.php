@@ -39,7 +39,8 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                // 화면에 필요한 값만 보낸다 (이메일·토큰 등 개인정보 제외)
+                'user' => $request->user()?->only(['id', 'nickname', 'status', 'point_balance']),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

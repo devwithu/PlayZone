@@ -43,10 +43,11 @@
 ## 1단계: 기반 구축 (W3–W5)
 
 - [x] `backend/`에 Laravel 공식 Vue 스타터 키트로 프로젝트 생성 (PHP 8.5, Laravel 13.43), PostgreSQL·Redis 연결 (2026-11-19)
-- [ ] 이메일·비밀번호 인증(Fortify 비밀번호·가입·재설정·이메일 인증·2FA·패스키) 제거
+- [x] 이메일·비밀번호 인증(Fortify 비밀번호·가입·재설정·이메일 인증·2FA·패스키) 제거 (2026-11-19, 나중에 추가할 수 있게 비워 둠, ADR-003 §8)
 - [x] **Inertia SSR 확인 (2026-11-19, 시작 페이지로 확인. 게임 상세는 2단계에서 재확인):** 게임 상세 페이지 첫 HTML에 본문·메타 태그가 들어가는지 검증 (실패 시 Blade 방식으로 전환 결정, ADR-002)
-- **소셜 로그인 키 발급** (로그인 구현 직전): Google OAuth 클라이언트 ID(웹·Android·iOS), Apple Sign in with Apple(App ID, Services ID, .p8 키), 콜백 URL 등록 (ADR-003 §8)
-- 회원·권한·소셜 계정 마이그레이션, Google·Apple 로그인 (웹 Socialite + API ID 토큰 검증), 가입 완료 화면(만 14세 확인·약관·닉네임), 마이페이지 계정 연결, 탈퇴 (ADR-003)
+- **소셜 로그인 키 발급** (로그인 구현 직전): Google OAuth 클라이언트 ID(웹·Android·iOS), Apple Sign in with Apple(App ID, Services ID, .p8 키), 콜백 URL 등록 (ADR-003 §9)
+- [x] 회원·권한·소셜 계정 마이그레이션, 웹 Google·Apple 로그인(Socialite), 가입 완료 화면(만 14세 확인·약관·닉네임), 로그아웃 (2026-11-19, 가짜 로그인 응답으로 테스트, 실제 키로는 미확인)
+- [ ] API ID 토큰 로그인(Sanctum), 마이페이지 계정 연결, 탈퇴 (ADR-003)
 - Filament 설치, 회원 관리 화면
 - 공통 API 응답 형식, 테스트 환경, GitHub Actions CI
 - 개발 환경 문서: `docs/04-development/environment-setup.md`

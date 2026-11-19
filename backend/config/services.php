@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    // 소셜 로그인 (ADR-003). 키는 로그인 구현 직전에 발급한다 (ADR-003 §9).
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('APP_URL').'/auth/google/callback',
+    ],
+
+    'apple' => [
+        'client_id' => env('APPLE_CLIENT_ID'),
+        'client_secret' => env('APPLE_CLIENT_SECRET'),
+        'redirect' => env('APP_URL').'/auth/apple/callback',
+    ],
+
 ];

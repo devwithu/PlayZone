@@ -2,51 +2,25 @@
 
 namespace App\Concerns;
 
-use App\Models\User;
+use App\Rules\UniqueNickname;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Unique;
 
 trait ProfileValidationRules
 {
     /**
-     * Get the validation rules used to validate user profiles.
+     * 닉네임: 2~12자, 한글·영문·숫자·밑줄, 대소문자 구분 없이 중복 불가 (REQ-004).
      *
-     * @return array<string, array<int, Unique|ValidationRule|array<mixed>|string>>
+     * @return array<int, ValidationRule|string>
      */
-    protected function profileRules(?int $userId = null): array
-    {
-        return [
-            'name' => $this->nameRules(),
-            'email' => $this->emailRules($userId),
-        ];
-    }
-
-    /**
-     * Get the validation rules used to validate user names.
-     *
-     * @return array<int, Unique|ValidationRule|array<mixed>|string>
-     */
-    protected function nameRules(): array
-    {
-        return ['required', 'string', 'max:255'];
-    }
-
-    /**
-     * Get the validation rules used to validate user emails.
-     *
-     * @return array<int, Unique|ValidationRule|array<mixed>|string>
-     */
-    protected function emailRules(?int $userId = null): array
+    protected function nicknameRules(?int $ignoreUserId = null): array
     {
         return [
             'required',
             'string',
-            'email',
-            'max:255',
-            $userId === null
-                ? Rule::unique(User::class)
-                : Rule::unique(User::class)->ignore($userId),
+            'min:2',
+            'max:12',
+            'regex:/^[가-힣a-zA-Z0-9_]+$/u',
+            new UniqueNickname($ignoreUserId),
         ];
     }
 }
