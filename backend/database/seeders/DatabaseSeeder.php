@@ -17,9 +17,13 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        // 로컬 확인용 회원. 소셜 로그인 없이는 로그인할 수 없으므로 화면 확인은 테스트나 tinker로 한다.
         User::factory()->create([
-            'name' => 'Test User',
             'email' => 'test@example.com',
+            'nickname' => '테스트회원',
+        ]);
+        User::factory()->pending()->create([
+            'email' => 'pending@example.com',
         ]);
     }
 }

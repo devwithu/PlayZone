@@ -67,6 +67,15 @@ Windows에서는 **WSL2(Ubuntu) 안에서 개발**한다. Laravel 공식 도구�
    ```
    `C:\` 아래(`/mnt/c/...`)에 두면 파일 접근이 매우 느리다. 반드시 `~/code` 같은 WSL 경로에 둔다.
 6. **에디터:** VS Code의 WSL 확장(또는 PhpStorm의 WSL 원격)으로 `~/code/PlayZone`을 연다.
+7. **Laravel 앱 첫 설정** (Ubuntu 안에서)
+   ```bash
+   cd ~/code/PlayZone && docker compose up -d
+   cd backend
+   cp .env.example .env && composer install && php artisan key:generate
+   php artisan migrate && npm ci && npm run build
+   composer test   # 전부 통과하면 준비 완료
+   ```
+   PHP 확장은 `pdo_pgsql`이 필요하다(위 `php8.5-pgsql`). Redis는 `predis`(PHP 코드)로 연결하므로 phpredis 확장은 없어도 된다.
 
 ### 4.2 매일 실행
 
@@ -82,7 +91,7 @@ docker compose up -d
 | 서비스 | 호스트 포트 | 접속 정보 |
 |---|---|---|
 | PostgreSQL 18 | **5433** | DB `game_evaluation`, 사용자 `game_user`, 비밀번호 `secret` (로컬 전용) |
-| PostgreSQL 테스트 DB | 5433 | DB `game_evaluation_test` (Pest 테스트용) |
+| PostgreSQL 테스트 DB | 5433 | DB `game_evaluation_test` (PHPUnit 테스트용) |
 | Redis 8 | **6380** | 비밀번호 없음 |
 
 - 기본 포트(5432, 6379)는 다른 프로젝트와 겹치지 않도록 피했다. 바꾸려면 저장소 루트에 `.env`를 만들고 `PLAYZONE_DB_PORT=5434`처럼 지정한다.
@@ -97,7 +106,7 @@ docker compose up -d
 | `docker compose exec postgres psql -U game_user -d game_evaluation` | DB 접속 |
 | `docker compose exec redis redis-cli` | Redis 접속 |
 
-### Laravel `.env` (1단계에서 `backend/.env.example`에 반영)
+### Laravel `.env` (`backend/.env.example`에 반영됨)
 
 ```env
 DB_CONNECTION=pgsql
@@ -126,3 +135,13 @@ REDIS_PORT=6380
 - **작업 전후 동기화:** 시작할 때 `git pull`, 끝낼 때 커밋·푸시. 원격 저장소(GitHub 등) 연결이 필요하다.
 - **의존성:** `composer.lock`, `package-lock.json`을 커밋하고, 다른 PC에서는 `composer install`, `npm ci`로 같은 버전을 설치한다.
 - **`backend/.env`:** PC마다 따로 만든다(`cp .env.example .env` 후 `php artisan key:generate`). 소셜 로그인 키 같은 비밀값은 Git이 아닌 안전한 곳(비밀번호 관리자 등)에 보관해 옮긴다.
+- **다른 PC에서 받은 뒤 매번** (`backend/`에서):
+  ```bash
+  git pull
+  composer install && npm ci          # lock 파일이 바뀌었을 때
+  php artisan migrate:fresh --seed    # 마이그레이션이 바뀌었을 때
+  npm run build                       # 화면(Inertia 페이지)이 추가됐을 때
+  composer test
+  ```
+  출시 전까지는 처음 만든 마이그레이션 파일을 그 자리에서 고치기도 하므로, `migrate`가 아니라 `migrate:fresh`로 DB를 다시 만든다(로컬 데이터는 지워진다). 출시 후에는 마이그레이션을 고치지 않고 새로 추가한다.
+- **화면을 추가하면 빌드부터:** Inertia 페이지를 렌더링하는 테스트는 Vite 빌드 결과(manifest)를 읽는다. 빌드하지 않으면 "Unable to locate file in Vite manifest"로 실패한다.
