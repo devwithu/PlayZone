@@ -39,6 +39,7 @@
 | `post_create` | 게시글 작성 | 20 | 5회 | 본문 20자 이상 |
 | `comment_create` | 댓글 작성 | 5 | 10회 | |
 | `event_reward` | 이벤트 보상 | 이벤트별 | — | 이벤트 설정에서 금액 지정 |
+| `mission_reward` | 평가단 미션 보상 (**2차**) | 미션별 | — | 관리자 검수 승인 시 지급. 미션 리뷰에는 `review_create`를 주지 않는다. 키: `mission_reward:{mission_id}:{user_id}` |
 | `admin_grant` | 관리자 수동 지급 | 입력값 | — | §8 참고 |
 
 - **연속 출석:** 하루라도 빠지면 연속 일수는 1부터 다시 센다. 30일을 채우면 다시 1일부터 센다.

@@ -466,3 +466,14 @@ erDiagram
 | 3 | 권한 관리 방식은? | 1차는 설계서대로 `roles`/`role_user`만 사용한다. 세부 권한이 필요해지면 `spatie/laravel-permission`을 검토한다 |
 | 4 | 닉네임 UNIQUE를 대소문자 구분 없이 할 것인가? | **구분 없이.** `lower(nickname)` UNIQUE 인덱스 |
 | 5 | 게임 검색 방식은? | 1차는 PostgreSQL `pg_trgm`을 쓴다. 검색 요구가 커지면 외부 검색엔진을 검토한다 (§4 games) |
+
+## 13. 2차 확장 (P2, 방향만)
+
+평가단 미션(요구사항 REQ-801~808)을 위한 테이블 방향이다. 2차 설계 때 확정하며, 1차 마이그레이션에는 만들지 않는다.
+
+| 테이블 | 주요 컬럼 | 설명 |
+|---|---|---|
+| `missions` (신규) | `game_id`, `title`, `content`, `sponsor_name`(NULL), `starts_at`, `ends_at`, `review_deadline_at`, `capacity`, `reward_points`, `min_content_length`, `status` | 미션 |
+| `mission_participations` (신규) | `mission_id`, `user_id`, `status`(`applied`/`reviewed`/`approved`/`rejected`/`cancelled`), `review_id`(NULL), `reviewed_by`, `reviewed_at`, `reject_reason` | 참여·검수. UNIQUE `(mission_id, user_id)` |
+| `game_reviews` | `mission_id` (NULL) 추가 | 미션 리뷰 구분, 보상 표시 |
+| `games` | `mission_review_count`, `mission_rating_avg` 추가 | 미션 리뷰 평균 별도 집계 (리뷰 정책 §14) |
