@@ -25,7 +25,7 @@ A platform for game info, release schedules, user reviews/ratings, community boa
 | Admin | Filament (`/admin`) | Filament auth + role permissions |
 | Mobile app | Unity C# (Android/iOS) | Sanctum Bearer token |
 
-Supporting services: Redis (cache/queue), Laravel Reverb (websocket notifications to the web), Firebase FCM (mobile push), S3-compatible file storage. Target versions in the design doc: PHP 8.3+, Laravel 13.x, Filament ^5.0.
+Supporting services: Redis (cache/queue), Laravel Reverb (websocket notifications to the web), Firebase FCM (mobile push), file storage. Files are stored on the app server first (Laravel `public` disk) and will later move to S3 or Cloudflare R2. Always store **relative paths** in the DB (`*_path`) and build URLs with `Storage::url()`, never store full URLs, so the switch only needs a disk config change. Target versions in the design doc: PHP 8.3+, Laravel 13.x, Filament ^5.0.
 
 ### Repository layout (decided, see `docs/07-meetings/decisions/ADR-001-repo-structure.md`)
 
@@ -56,6 +56,5 @@ Settle the ERD, API spec, point policy and review policy before implementing fea
 
 ## Git conventions
 
-- Branches: `main` (stable), `develop` (integration), `feature/*`, `docs/*`, `hotfix/*`.
+- **Commit directly to `main`.** This is a solo project, so do not create branches or PRs unless the user asks. (The `develop`/`feature/*`/`docs/*` branch strategy in `git-project-documentation-structure.md` is not used.)
 - Commit prefixes: `feat:`, `fix:`, `docs:`, `design:`, `test:`, `refactor:`. Messages are typically written in Korean, e.g. `docs: 요구사항 정의서 수정`.
-- Doc changes are also reviewed through PRs.
