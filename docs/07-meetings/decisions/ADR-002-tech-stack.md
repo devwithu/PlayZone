@@ -56,18 +56,18 @@
 |---|---|---|---|
 | 언어 | PHP | **8.5** | Laravel 13은 PHP 8.3~8.5 지원 |
 | 백엔드 | Laravel | 13.x | 2026-03 출시 |
-| 홈페이지 | Inertia + Vue 3 + TypeScript | 공식 Vue 스타터 키트 기본 버전 | Composition API, Tailwind CSS, shadcn-vue. Inertia 버전은 설치 시 확인 |
+| 홈페이지 | Inertia 3 + Vue 3 + TypeScript | 공식 Vue 스타터 키트 (`dev-main`, Laravel 13.43) | Composition API, Tailwind CSS 4, shadcn-vue, Wayfinder(타입 있는 라우트), Vite+ |
 | SSR | Inertia SSR (Node) | | 게임·리뷰·게시글 등 공개 페이지 검색 노출 |
 | 로그인 | Laravel Socialite (Google, Apple) | | 웹은 리디렉션 방식, 앱은 ID 토큰 검증 (ADR-003). 스타터 키트의 Fortify 이메일 인증은 제거 |
 | API 인증 | Laravel Sanctum | | Unity 토큰 60일 (API 명세 §2) |
 | 관리자 | Filament | 5.x | PHP 8.2+, Laravel 11.28+, Livewire 4, Tailwind 4.1+ 요구 → 충족. 관리자 로그인 방식은 ADR-003 |
-| DB | PostgreSQL | 17 이상 | `pg_trgm` 확장 사용 (ERD §12) |
-| 캐시·큐 | Redis | 7 이상 | 캐시, 큐. 세션은 DB(`SESSION_DRIVER=database`) |
+| DB | PostgreSQL | 18 (로컬 Docker) | `pg_trgm` 확장 사용 (ERD §12) |
+| 캐시·큐 | Redis | 8 (로컬 Docker), 클라이언트 `predis` | 캐시, 큐. 세션은 DB(`SESSION_DRIVER=database`) |
 | 실시간 | Laravel Reverb + Echo | | 웹 실시간 알림 |
 | 푸시 | Firebase Cloud Messaging | | Laravel용 Firebase 패키지는 4단계에 선정 |
 | 파일 | 서버 로컬 저장(`public` 디스크) → S3 또는 Cloudflare R2 | | DB에는 상대 경로 (ERD §1) |
 | API 문서 | Scramble (`dedoc/scramble`) | | OpenAPI 자동 생성 (API 명세 §9) |
-| 테스트 | Pest | | Laravel 기본 |
+| 테스트 | PHPUnit 12 | | 공식 Vue 스타터 키트 기본값 (처음엔 Pest로 정했으나 2026-11-19 프로젝트 생성 시 키트 기본값 유지로 변경) |
 | 코드 스타일 | Laravel Pint | | |
 | 정적 분석 | Larastan | | 1단계에서 레벨 결정 |
 | Node.js | LTS | | Vite 빌드, SSR |

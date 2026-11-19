@@ -15,14 +15,31 @@ The user works on macOS at home and Windows (WSL2) at work. See `docs/04-develop
 - PHP 8.5, Composer and Node 26 are installed on the host (inside WSL2 on Windows), not in Docker.
 - Line endings are LF everywhere (`.gitattributes`, `.editorconfig`). Prefer composer/npm scripts over bash-only scripts so commands work on both OSes. File-name casing must match class names exactly, because macOS is case-insensitive but Linux/WSL is not.
 
+## Commands (run from `backend/`)
+
+| Task | Command |
+|---|---|
+| First setup on a new machine | `cp .env.example .env && composer install && php artisan key:generate && php artisan migrate && npm ci` |
+| Run everything for development | `composer dev` (server on :8000, queue worker, `pail` logs, Vite) |
+| Full check (Pint check + PHPStan + tests) | `composer test` |
+| Tests only | `php artisan test` |
+| One test file / one test | `php artisan test tests/Feature/ExampleTest.php` / `php artisan test --filter=test_name` |
+| PHP format / check | `composer lint` / `composer lint:check` |
+| PHP static analysis (Larastan) | `composer types:check` |
+| JS/Vue lint + format check / fix | `npm run check` / `npm run check:fix` (Vite+ `vp`) |
+| TS type check | `npm run types:check` |
+| Build with SSR | `npm run build:ssr`, then `php artisan inertia:start-ssr` (stop: `inertia:stop-ssr`) |
+| Regenerate typed routes for TS | `php artisan wayfinder:generate` (the Vite plugin also does it) |
+
+Tests run against the PostgreSQL test DB `game_evaluation_test` (set in `phpunit.xml`), not SQLite, so Docker must be running. `composer dev` does not start the SSR server. SSR only applies to built assets, so to check server-rendered HTML, build with `build:ssr` and run `inertia:start-ssr`.
+
 ## Current state
 
-This repo is a **scaffold with no application code yet**. Every `src/`, `migrations/`, `shared/*` and `scripts/` directory holds only a `.gitkeep`, and most docs under `docs/` are empty placeholders. There are no build, lint or test commands yet. Do not invent any. Add them here once a `composer.json` / `package.json` / Unity project exists.
+- `backend/` holds the Laravel 13 app, created from the official Vue starter kit (`laravel/vue-starter-kit` `dev-main`): Inertia 3, Vue 3, TypeScript, Tailwind 4, shadcn-vue (reka-ui), Fortify, Wayfinder (typed routes in `resources/js/routes`, `resources/js/actions`) and Vite+ (`vite-plus`). It is connected to Docker Postgres/Redis (`predis` client, cache and queue on Redis, `public` disk). SSR was verified on 2026-11-19.
+- **Not done yet:** the kit's email/password, registration, password reset, email verification, 2FA and passkey features (Fortify, `resources/js/pages/auth/*`, `settings/Security.vue`) are still present. They must be replaced by Google/Apple login (ADR-003). No domain tables or features exist yet.
+- `backend/.github/workflows/tests.yml` comes from the kit and is inactive, because GitHub only reads the repo-root `.github/`.
 
-The only documents with real content (all in Korean):
-
-- `docs/00-overview/game-evaluation-development-design.md`: the authoritative technical design for the product (stack, DB schema, API, business rules, roadmap). Identical copies exist at `docs/game-evaluation-development-design.md` and `untitled folder/game-evaluation-development-design.md`. Treat the `00-overview` copy as canonical, and if you edit it, flag that the copies have diverged.
-- `git-project-documentation-structure.md`: the rationale for the repo layout and the docs, branch and commit conventions summarized below.
+Original design doc: `docs/00-overview/game-evaluation-development-design.md`. Identical copies exist at `docs/game-evaluation-development-design.md` and `untitled folder/`. The confirmed docs listed below override it.
 
 ## Product: 게임평가단 (game evaluation community)
 
@@ -36,11 +53,11 @@ A platform for game info, release schedules, user reviews/ratings, community boa
 
 **Login is Google and Apple only** (`ADR-003-social-login.md`): there are no passwords, email/password signup, password reset or email verification, so remove Fortify's email/password features from the starter kit. A first social login creates a `pending` user, who must finish signup (terms + nickname) before using other features.
 
-Supporting services: Redis (cache/queue), Laravel Reverb (websocket notifications to the web), Firebase FCM (mobile push), file storage. Files are stored on the app server first (Laravel `public` disk) and will later move to S3 or Cloudflare R2. Always store **relative paths** in the DB (`*_path`) and build URLs with `Storage::url()`, never store full URLs, so the switch only needs a disk config change. Versions (`ADR-002-tech-stack.md`): PHP 8.5, Laravel 13.x, Filament 5.x, PostgreSQL 17+, Pest, Pint, Larastan.
+Supporting services: Redis (cache/queue), Laravel Reverb (websocket notifications to the web), Firebase FCM (mobile push), file storage. Files are stored on the app server first (Laravel `public` disk) and will later move to S3 or Cloudflare R2. Always store **relative paths** in the DB (`*_path`) and build URLs with `Storage::url()`, never store full URLs, so the switch only needs a disk config change. Versions (`ADR-002-tech-stack.md`): PHP 8.5, Laravel 13.x, Inertia 3, Filament 5.x, PostgreSQL 18 (Docker), Redis 8 (Docker), PHPUnit (kit default), Pint, Larastan.
 
 ### Repository layout (decided, see `docs/07-meetings/decisions/ADR-001-repo-structure.md`)
 
-- `backend/`: the **single Laravel project**. It contains the website (`resources/views` + `resources/js`), the API (`app/Http/Controllers/Api/V1`) and the Filament admin, following the folder structure in design doc §2. Run all `php artisan`, `composer` and `npm` commands from `backend/`.
+- `backend/`: the **single Laravel project**. It contains the website (Inertia pages in `resources/js/pages`), the API (`app/Http/Controllers/Api/V1`) and the Filament admin, following the folder structure in design doc §2. Run all `php artisan`, `composer` and `npm` commands from `backend/`.
 - `apps/mobile/`: the Unity project.
 - `apps/web/` is **not used**. Do not put website code there.
 
