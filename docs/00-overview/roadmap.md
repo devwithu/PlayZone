@@ -35,7 +35,7 @@
 | 포인트 정책 (지급·차감 기준, 중복 방지 키) | `docs/01-planning/policies/point-policy.md` | 완료 |
 | 리뷰 정책 (게임당 리뷰 수, 공개 상태, 평균 반영) | `docs/01-planning/policies/review-policy.md` | 완료 |
 | ERD (9개 영역 테이블·제약·인덱스) | `docs/03-architecture/database/erd.md` | 완료 |
-| API 명세 (`/api/v1`, 응답 규격, 오류 코드) | `docs/03-architecture/api/` (OpenAPI YAML) | |
+| API 명세 (`/api/v1`, 응답 규격, 오류 코드) | `docs/03-architecture/api/api-spec.md` (OpenAPI는 1단계에서 자동 생성) | 완료 |
 | 주요 화면 와이어프레임 | `docs/02-design/wireframes/` | |
 | Apple·Google 개발자 계정 등록 | 승인에 시간이 걸릴 수 있어 미리 진행 | |
 
