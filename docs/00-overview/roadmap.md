@@ -38,12 +38,13 @@
 | ERD (9개 영역 테이블·제약·인덱스) | `docs/03-architecture/database/erd.md` | 완료 |
 | API 명세 (`/api/v1`, 응답 규격, 오류 코드) | `docs/03-architecture/api/api-spec.md` (OpenAPI는 1단계에서 자동 생성) | 완료 |
 | 주요 화면 와이어프레임 | `docs/02-design/wireframes/screens.md` | 완료 |
-| Apple·Google 개발자 계정 등록, Google OAuth 클라이언트·Apple Sign in 키 발급 | 승인에 시간이 걸릴 수 있어 미리 진행 (ADR-003 §8) | |
+| Apple·Google 개발자 계정 등록 | 기존 계정 사용 | 완료 |
 
 ## 1단계: 기반 구축 (W3–W5)
 
 - `backend/`에 Laravel 공식 Vue 스타터 키트로 프로젝트 생성 (PHP 8.5), 이메일·비밀번호 인증(Fortify) 제거, PostgreSQL·Redis 연결
 - **Inertia SSR 확인:** 게임 상세 페이지 첫 HTML에 본문·메타 태그가 들어가는지 검증 (실패 시 Blade 방식으로 전환 결정, ADR-002)
+- **소셜 로그인 키 발급** (로그인 구현 직전): Google OAuth 클라이언트 ID(웹·Android·iOS), Apple Sign in with Apple(App ID, Services ID, .p8 키), 콜백 URL 등록 (ADR-003 §8)
 - 회원·권한·소셜 계정 마이그레이션, Google·Apple 로그인 (웹 Socialite + API ID 토큰 검증), 가입 완료 화면(만 14세 확인·약관·닉네임), 마이페이지 계정 연결, 탈퇴 (ADR-003)
 - Filament 설치, 회원 관리 화면
 - 공통 API 응답 형식, 테스트 환경, GitHub Actions CI
