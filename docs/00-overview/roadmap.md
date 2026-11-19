@@ -37,7 +37,7 @@
 | 리뷰 정책 (게임당 리뷰 수, 공개 상태, 평균 반영) | `docs/01-planning/policies/review-policy.md` | 완료 |
 | ERD (9개 영역 테이블·제약·인덱스) | `docs/03-architecture/database/erd.md` | 완료 |
 | API 명세 (`/api/v1`, 응답 규격, 오류 코드) | `docs/03-architecture/api/api-spec.md` (OpenAPI는 1단계에서 자동 생성) | 완료 |
-| 주요 화면 와이어프레임 | `docs/02-design/wireframes/` | |
+| 주요 화면 와이어프레임 | `docs/02-design/wireframes/screens.md` | 완료 |
 | Apple·Google 개발자 계정 등록, Google OAuth 클라이언트·Apple Sign in 키 발급 | 승인에 시간이 걸릴 수 있어 미리 진행 (ADR-003 §8) | |
 
 ## 1단계: 기반 구축 (W3–W5)
