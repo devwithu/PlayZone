@@ -32,7 +32,7 @@
 | 저장소 구조 결정 | `docs/07-meetings/decisions/ADR-001-repo-structure.md` | 완료 |
 | 기술 스택 확정 (PHP 8.3, Laravel 13, Filament 5, PostgreSQL, Redis) | `docs/07-meetings/decisions/ADR-002-tech-stack.md` | 완료 |
 | 소셜 로그인 방식 결정 (Google·Apple 전용) | `docs/07-meetings/decisions/ADR-003-social-login.md` | 완료 |
-| 요구사항 정의 (REQ/WEB/MOB ID 부여) | `docs/01-planning/requirements/` | |
+| 요구사항 정의 (REQ/WEB/MOB ID 부여) | `docs/01-planning/requirements/requirements.md` | 완료 |
 | 포인트 정책 (지급·차감 기준, 중복 방지 키) | `docs/01-planning/policies/point-policy.md` | 완료 |
 | 리뷰 정책 (게임당 리뷰 수, 공개 상태, 평균 반영) | `docs/01-planning/policies/review-policy.md` | 완료 |
 | ERD (9개 영역 테이블·제약·인덱스) | `docs/03-architecture/database/erd.md` | 완료 |
@@ -65,14 +65,15 @@
 - 출석 (트랜잭션 + UNIQUE 제약, 동시 요청 테스트)
 - 리뷰·별점·추천·댓글, 평균 점수 반영, 작성 포인트 지급
 - 게시판·댓글, 마이페이지, 기본 랭킹
-- 관리자 리뷰·게시글 관리
+- 관리자 리뷰·게시글 관리, 신고 검토 대기열
+- 기본 이벤트(관리자 등록, 포인트 응모, 당첨 지정), 공지사항
 
 **완료 기준:** 출석과 리뷰 작성 포인트가 정확히 한 번만 지급되고, 이를 테스트로 증명한다.
 
 ## 4단계: Unity·알림·테스트 (W16–W21)
 
-- `apps/mobile/`에서 Unity Google·Apple 네이티브 로그인, 토큰 저장, 핵심 API 연동
-- FCM 푸시, Reverb 실시간 알림 (DB 저장이 끝난 뒤 이벤트 발행)
+- `apps/mobile/`에서 Unity Google·Apple 네이티브 로그인, 토큰 저장, 핵심 API 연동 (커뮤니티 제외)
+- FCM 앱 푸시 (DB 저장이 끝난 뒤 발송). 웹 실시간 알림(Reverb)은 1차 이후
 - QA 체크리스트, 보안 점검 (요청 제한, 업로드 검증, 관리자 권한)
 - 운영 서버 구성, 백업과 복구 테스트, 앱 스토어 심사 제출
 

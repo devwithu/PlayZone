@@ -76,7 +76,7 @@ erDiagram
 | 컬럼 | 타입 | 제약 | 설명 |
 |---|---|---|---|
 | email | varchar(255) | NULL, UNIQUE | 소셜 제공자가 준 이메일 (Apple 중계 주소 가능). 로그인 식별에는 쓰지 않음 (ADR-003) |
-| nickname | varchar(20) | NULL, UNIQUE `lower(nickname)` | 표시 이름, 대소문자 구분 없이 중복 불가. 가입 완료 시 설정 |
+| nickname | varchar(20) | NULL, UNIQUE `lower(nickname)` | 표시 이름, 대소문자 구분 없이 중복 불가. 가입 완료 시 설정. 입력은 **2~12자**로 검증 (REQ-004). 컬럼 길이 20은 탈퇴 익명값용 |
 | status | varchar(20) | CHECK `pending`/`active`/`suspended`/`withdrawn` | `pending`은 가입 미완료 (약관·닉네임 전) |
 | signup_completed_at | timestamptz | NULL | 가입 완료 시각. 가입 포인트 지급 기준 |
 | terms_agreed_at | timestamptz | NULL | 이용약관·개인정보 처리방침 동의 (필수) |
