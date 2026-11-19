@@ -80,6 +80,7 @@ erDiagram
 | status | varchar(20) | CHECK `pending`/`active`/`suspended`/`withdrawn` | `pending`은 가입 미완료 (약관·닉네임 전) |
 | signup_completed_at | timestamptz | NULL | 가입 완료 시각. 가입 포인트 지급 기준 |
 | terms_agreed_at | timestamptz | NULL | 이용약관·개인정보 처리방침 동의 (필수) |
+| age_confirmed_at | timestamptz | NULL | 만 14세 이상 확인 (필수, ADR-003 §7) |
 | marketing_agreed_at | timestamptz | NULL | 마케팅 수신 동의 (선택), 철회 시 NULL |
 | user_level_id | bigint | FK → user_levels | 현재 등급 |
 | point_balance | integer | NOT NULL DEFAULT 0, CHECK ≥ 0 | 잔액 (포인트 정책 §2-6) |

@@ -31,7 +31,7 @@
 |---|---|---|
 | 저장소 구조 결정 | `docs/07-meetings/decisions/ADR-001-repo-structure.md` | 완료 |
 | 기술 스택 확정 (PHP 8.3, Laravel 13, Filament 5, PostgreSQL, Redis) | `docs/07-meetings/decisions/ADR-002-tech-stack.md` | 완료 |
-| 소셜 로그인 방식 결정 (Google·Apple 전용) | `docs/07-meetings/decisions/ADR-003-social-login.md` | 완료 (미결 2건) |
+| 소셜 로그인 방식 결정 (Google·Apple 전용) | `docs/07-meetings/decisions/ADR-003-social-login.md` | 완료 |
 | 요구사항 정의 (REQ/WEB/MOB ID 부여) | `docs/01-planning/requirements/` | |
 | 포인트 정책 (지급·차감 기준, 중복 방지 키) | `docs/01-planning/policies/point-policy.md` | 완료 |
 | 리뷰 정책 (게임당 리뷰 수, 공개 상태, 평균 반영) | `docs/01-planning/policies/review-policy.md` | 완료 |
@@ -44,7 +44,7 @@
 
 - `backend/`에 Laravel 공식 Vue 스타터 키트로 프로젝트 생성 (PHP 8.5), 이메일·비밀번호 인증(Fortify) 제거, PostgreSQL·Redis 연결
 - **Inertia SSR 확인:** 게임 상세 페이지 첫 HTML에 본문·메타 태그가 들어가는지 검증 (실패 시 Blade 방식으로 전환 결정, ADR-002)
-- 회원·권한·소셜 계정 마이그레이션, Google·Apple 로그인 (웹 Socialite + API ID 토큰 검증), 가입 완료 화면, 탈퇴 (ADR-003)
+- 회원·권한·소셜 계정 마이그레이션, Google·Apple 로그인 (웹 Socialite + API ID 토큰 검증), 가입 완료 화면(만 14세 확인·약관·닉네임), 마이페이지 계정 연결, 탈퇴 (ADR-003)
 - Filament 설치, 회원 관리 화면
 - 공통 API 응답 형식, 테스트 환경, GitHub Actions CI
 - 개발 환경 문서: `docs/04-development/environment-setup.md`
