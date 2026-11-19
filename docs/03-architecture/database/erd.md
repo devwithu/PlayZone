@@ -21,13 +21,14 @@
 | 파일 | 1차는 **애플리케이션 서버에 저장**하고 서버 URL로 제공한다(Laravel `public` 디스크). 이후 **S3 또는 Cloudflare R2로 전환**한다. DB에는 저장소 기준 상대 경로만 저장하고(`*_path`, 예: `games/15/cover.webp`), URL은 `Storage::url()`로 만든다. 그래야 전환할 때 DB 데이터를 고치지 않고 디스크 설정만 바꾸면 된다 |
 | 집계 컬럼 | `*_count`, `rating_avg` 등은 원본 데이터에서 다시 계산할 수 있는 캐시다. 커밋 후 갱신한다 |
 
-Laravel 기본 테이블(`sessions`, `cache`, `jobs`, `failed_jobs`, `password_reset_tokens`, `personal_access_tokens`)은 프레임워크 기본 구조를 그대로 쓰고 이 문서에서는 생략한다.
+Laravel 기본 테이블(`sessions`, `cache`, `jobs`, `failed_jobs`, `personal_access_tokens`)은 프레임워크 기본 구조를 그대로 쓰고 이 문서에서는 생략한다.
 
 ## 2. 전체 관계도
 
 ```mermaid
 erDiagram
     USERS ||--o| USER_PROFILES : has
+    USERS ||--o{ SOCIAL_ACCOUNTS : logs_in_with
     USERS }o--o{ ROLES : role_user
     USERS }o--|| USER_LEVELS : level
     USERS ||--o{ USER_DEVICES : registers
@@ -74,27 +75,43 @@ erDiagram
 ### users
 | 컬럼 | 타입 | 제약 | 설명 |
 |---|---|---|---|
-| email | varchar(255) | UNIQUE | 로그인 이메일 |
-| email_verified_at | timestamptz | NULL | 인증 완료 시각. 가입 포인트 지급 조건 |
-| password | varchar(255) | | 해시 |
-| nickname | varchar(20) | UNIQUE `lower(nickname)` | 표시 이름, 대소문자 구분 없이 중복 불가 |
-| status | varchar(20) | CHECK `active`/`suspended`/`withdrawn` | 회원 상태 |
+| email | varchar(255) | NULL, UNIQUE | 소셜 제공자가 준 이메일 (Apple 중계 주소 가능). 로그인 식별에는 쓰지 않음 (ADR-003) |
+| nickname | varchar(20) | NULL, UNIQUE `lower(nickname)` | 표시 이름, 대소문자 구분 없이 중복 불가. 가입 완료 시 설정 |
+| status | varchar(20) | CHECK `pending`/`active`/`suspended`/`withdrawn` | `pending`은 가입 미완료 (약관·닉네임 전) |
+| signup_completed_at | timestamptz | NULL | 가입 완료 시각. 가입 포인트 지급 기준 |
+| terms_agreed_at | timestamptz | NULL | 이용약관·개인정보 처리방침 동의 (필수) |
+| marketing_agreed_at | timestamptz | NULL | 마케팅 수신 동의 (선택), 철회 시 NULL |
 | user_level_id | bigint | FK → user_levels | 현재 등급 |
 | point_balance | integer | NOT NULL DEFAULT 0, CHECK ≥ 0 | 잔액 (포인트 정책 §2-6) |
 | lifetime_points | integer | NOT NULL DEFAULT 0 | 누적 획득 포인트, 등급 기준 |
 | withdrawn_at | timestamptz | NULL | 탈퇴 시각 |
-| remember_token | varchar(100) | NULL | Laravel 기본 |
+| remember_token | varchar(100) | NULL | Laravel 기본 (웹 로그인 유지) |
 
-- 탈퇴 시 `email`, `nickname`을 `withdrawn_{id}` 형식의 익명값으로 바꾼다 (§12)
+- 비밀번호 컬럼은 없다. Google·Apple 로그인만 사용한다 (ADR-003).
+- 탈퇴 시 `email`은 NULL, `nickname`은 `withdrawn_{id}` 형식의 익명값으로 바꾸고, `social_accounts`를 삭제한다 (§12).
+- `pending` 상태로 7일이 지난 계정은 스케줄러가 삭제한다 (ADR-003 §4).
 
-### withdrawn_email_hashes
+### social_accounts
 | 컬럼 | 타입 | 제약 | 설명 |
 |---|---|---|---|
-| email_hash | char(64) | UNIQUE | 소문자 이메일의 SHA-256 (+ 앱 키 기반 HMAC) |
+| user_id | bigint | FK | |
+| provider | varchar(20) | CHECK `google`/`apple` | |
+| provider_user_id | varchar(255) | | 제공자의 사용자 ID (`sub`) |
+| email | varchar(255) | NULL | 제공자가 준 이메일 (Apple은 첫 로그인 때만 제공) |
+| refresh_token | text | NULL, **암호화 저장** | Apple 탈퇴 시 토큰 폐기용 (ADR-003 §5) |
+| last_login_at | timestamptz | | |
+
+- UNIQUE `(provider, provider_user_id)` (한 소셜 계정은 한 회원에만 연결)
+- UNIQUE `(user_id, provider)` (회원당 제공자별 1개)
+
+### withdrawn_identity_hashes
+| 컬럼 | 타입 | 제약 | 설명 |
+|---|---|---|---|
+| identity_hash | char(64) | UNIQUE | `{provider}:{provider_user_id}`의 HMAC-SHA256 (앱 키 사용) |
 | expires_at | timestamptz | | 탈퇴 시각 + 30일. 지난 행은 스케줄러가 삭제 |
 | created_at | timestamptz | | |
 
-가입할 때 같은 해시가 있고 `expires_at`이 지나지 않았으면 가입을 막는다 (§12).
+처음 소셜 로그인으로 계정을 만들 때 같은 해시가 있고 `expires_at`이 지나지 않았으면 가입을 막는다 (§12).
 
 ### user_profiles
 | 컬럼 | 타입 | 제약 | 설명 |
@@ -434,6 +451,7 @@ erDiagram
 | `notifications` | 직접 설계 | Laravel 기본 알림 테이블 | 프레임워크 기능을 그대로 사용 |
 | 파일 저장소 | S3 호환 스토리지, `*_url` 저장 | 1차는 서버 저장, 이후 S3 또는 Cloudflare R2로 전환. `*_path`(상대 경로) 저장 | 초기 비용과 설정 부담을 줄임. 상대 경로만 저장하므로 저장소를 바꿔도 DB 데이터 수정 불필요 |
 | 포인트·리뷰 관련 | — | 각 정책 문서의 변경 제안 반영 | 포인트 정책 §11, 리뷰 정책 §13 |
+| 로그인 | 이메일·비밀번호 | Google·Apple 소셜 로그인. `users.password` 제거, `social_accounts` 추가, 가입 완료 상태(`pending`) 추가 | ADR-003 |
 | 신규 | — | `game_release_dates.date_precision`, `point_transactions.service_date`, `events.entry_cost_points`, `event_entries.is_winner` | 출시일 표기, 일일 한도 계산, 포인트 사용처(이벤트 응모) |
 
 ## 12. 결정 사항
@@ -442,8 +460,8 @@ erDiagram
 
 | # | 질문 | 결정 |
 |---|---|---|
-| 1 | 탈퇴 회원의 개인정보는? | 탈퇴 시 이메일·닉네임을 익명값(예: `withdrawn_{id}`)으로 바꾸고 `user_profiles`를 삭제한다. `users` 행은 리뷰·원장 FK 때문에 남긴다 |
-| 2 | 탈퇴 후 같은 이메일로 재가입을 허용하는가? | 허용하되 **탈퇴 후 30일 동안은 막는다**. 탈퇴 이메일의 해시를 `withdrawn_email_hashes`에 30일 보관한다 (가입 포인트 반복 수령 방지) |
+| 1 | 탈퇴 회원의 개인정보는? | 탈퇴 시 이메일은 NULL, 닉네임은 익명값(예: `withdrawn_{id}`)으로 바꾸고 `user_profiles`·`social_accounts`를 삭제한다. `users` 행은 리뷰·원장 FK 때문에 남긴다 |
+| 2 | 탈퇴 후 재가입을 허용하는가? | 허용하되 **탈퇴 후 30일 동안 같은 소셜 계정으로는 막는다**. 소셜 계정 식별자의 해시를 `withdrawn_identity_hashes`에 30일 보관한다 (가입 포인트 반복 수령 방지). 소셜 로그인 전환(ADR-003)에 따라 이메일 해시에서 변경 |
 | 3 | 권한 관리 방식은? | 1차는 설계서대로 `roles`/`role_user`만 사용한다. 세부 권한이 필요해지면 `spatie/laravel-permission`을 검토한다 |
 | 4 | 닉네임 UNIQUE를 대소문자 구분 없이 할 것인가? | **구분 없이.** `lower(nickname)` UNIQUE 인덱스 |
 | 5 | 게임 검색 방식은? | 1차는 PostgreSQL `pg_trgm`을 쓴다. 검색 요구가 커지면 외부 검색엔진을 검토한다 (§4 games) |

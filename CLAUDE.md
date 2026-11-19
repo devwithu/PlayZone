@@ -21,11 +21,13 @@ A platform for game info, release schedules, user reviews/ratings, community boa
 
 | Client | Tech | Auth |
 |---|---|---|
-| Website | Laravel Blade + Vue islands (not Inertia) | Laravel session + CSRF |
+| Website | Inertia + Vue 3 + TypeScript with SSR (official Laravel Vue starter kit) | Laravel session via Socialite (Google/Apple) |
 | Admin | Filament (`/admin`) | Filament auth + role permissions |
-| Mobile app | Unity C# (Android/iOS) | Sanctum Bearer token |
+| Mobile app | Unity C# (Android/iOS) | Google/Apple ID token → Sanctum Bearer token |
 
-Supporting services: Redis (cache/queue), Laravel Reverb (websocket notifications to the web), Firebase FCM (mobile push), file storage. Files are stored on the app server first (Laravel `public` disk) and will later move to S3 or Cloudflare R2. Always store **relative paths** in the DB (`*_path`) and build URLs with `Storage::url()`, never store full URLs, so the switch only needs a disk config change. Target versions in the design doc: PHP 8.3+, Laravel 13.x, Filament ^5.0.
+**Login is Google and Apple only** (`ADR-003-social-login.md`): there are no passwords, email/password signup, password reset or email verification, so remove Fortify's email/password features from the starter kit. A first social login creates a `pending` user, who must finish signup (terms + nickname) before using other features.
+
+Supporting services: Redis (cache/queue), Laravel Reverb (websocket notifications to the web), Firebase FCM (mobile push), file storage. Files are stored on the app server first (Laravel `public` disk) and will later move to S3 or Cloudflare R2. Always store **relative paths** in the DB (`*_path`) and build URLs with `Storage::url()`, never store full URLs, so the switch only needs a disk config change. Versions (`ADR-002-tech-stack.md`): PHP 8.5, Laravel 13.x, Filament 5.x, PostgreSQL 17+, Pest, Pint, Larastan.
 
 ### Repository layout (decided, see `docs/07-meetings/decisions/ADR-001-repo-structure.md`)
 
@@ -39,12 +41,12 @@ The project has one developer (solo), so plan work sequentially. See `docs/00-ov
 
 - **Thin controllers, shared services.** Business logic lives in `app/Services/*Service.php` (Game, Review, Attendance, Point, Notification) and is reused by Web controllers, `Api/V1` controllers and Filament. Validation goes in FormRequests (`app/Http/Requests/Api/V1`) and authorization in Policies.
 - **Unity is only an API client.** It never touches the DB and never scrapes HTML. All mobile access goes through versioned REST at `/api/v1/`.
-- **API contract:** `docs/03-architecture/api/api-spec.md` is the source of truth. Base path is `/api/v1` on the same domain as the website. Unity uses Sanctum Bearer tokens (60-day expiry), and the website's Vue code calls the same API with session + CSRF (Sanctum SPA auth). Responses use `{ "success", "message", "data" }`, with paginated lists under `data.items` + `data.pagination`. Errors are `{ "success": false, "code", "message", "errors" }`, where `code` is a fixed string from the spec's error-code table that clients branch on. Point-granting endpoints return `data.point`. OpenAPI docs are generated from code by Scramble, not hand-written.
+- **API contract:** `docs/03-architecture/api/api-spec.md` is the source of truth. Base path is `/api/v1` on the same domain as the website. The API is for Unity (Sanctum Bearer tokens, 60-day expiry). The website does **not** call `/api/v1`. It uses Inertia web routes, and web and API controllers share the same services and validation rules. Responses use `{ "success", "message", "data" }`, with paginated lists under `data.items` + `data.pagination`. Errors are `{ "success": false, "code", "message", "errors" }`, where `code` is a fixed string from the spec's error-code table that clients branch on. Point-granting endpoints return `data.point`. OpenAPI docs are generated from code by Scramble, not hand-written.
 - **Policies and schema:** `docs/01-planning/policies/point-policy.md`, `review-policy.md` and `docs/03-architecture/database/erd.md` are confirmed. They refine (and in places override) the original design doc. Follow them when implementing.
 - **Points and attendance integrity:** the server decides dates and point amounts and never trusts client values. Attendance, point grants and review likes must use a DB transaction **plus** a UNIQUE constraint (e.g. `user_id + attendance_date`). All point changes go through `PointService`, which keeps a transaction ledger (`point_transactions`) and the user's balance consistent, using an idempotency/dedup key per source (attendance, review, event).
 - **Events after commit:** broadcast events (e.g. `ReviewCreated` → Reverb → Vue, plus FCM push) only after the DB transaction commits.
 - **Data conventions:** store timestamps in UTC and convert to KST for display. Review scores are 1–10 with a CHECK constraint. Prefer status changes and soft retention over hard deletes. Unique keys: email, game slug, `user_id+game_id` (favorites), `user_id+review_id` (review likes).
-- Vue is mounted per element via `data-vue-component` / `data-props` attributes in Blade (see design doc §3.3). Blade handles page structure and SEO, and Vue handles interactive widgets.
+- Public pages (games, reviews, posts) must be SSR-rendered with title/meta tags in the first HTML response, because Naver and Google search traffic depends on it. Avoid browser-only APIs (`window`, `document`) at module top level in Vue pages. The design doc's Blade + Vue-islands approach (§3.3) is superseded by ADR-002.
 
 Settle the ERD, API spec, point policy and review policy before implementing features (design doc §12).
 

@@ -11,12 +11,12 @@
 
 - Laravel 앱(웹·API·관리자 통합)은 `backend/`에 둔다.
 - Unity 모바일 앱은 `apps/mobile/`에 둔다.
-- `apps/web/`은 사용하지 않는다. 홈페이지는 `backend/resources/`에서 Blade + Vue로 개발한다.
+- `apps/web/`은 사용하지 않는다. 홈페이지는 `backend/resources/js/pages/`에서 Inertia + Vue로 개발한다 (ADR-002에서 Blade + Vue를 Inertia로 변경).
 
 ## 이유
 
 - 설계서의 단일 Laravel 구조를 그대로 따르면, 웹·API·관리자가 서비스 계층과 모델을 그대로 함께 쓸 수 있다.
-- Blade + Vue 아일랜드 방식이라 별도 프론트엔드 프로젝트가 필요 없다.
+- Inertia 방식도 Laravel 프로젝트 안에서 Vue 화면을 만들므로 별도 프론트엔드 프로젝트가 필요 없다.
 - 1인 개발이므로 관리할 프로젝트 수를 최소화한다.
 
 ## 영향

@@ -22,15 +22,19 @@
 
 ## 2. 인증
 
+로그인은 **Google·Apple 소셜 로그인만** 허용한다. 이메일·비밀번호 가입은 없다 ([ADR-003](../../07-meetings/decisions/ADR-003-social-login.md)).
+
 | 클라이언트 | 방식 |
 |---|---|
-| Unity 앱 | Sanctum 토큰. `Authorization: Bearer {token}` |
-| 홈페이지 Vue | 같은 `/api/v1`을 **Laravel 세션 + CSRF**로 호출 (Sanctum SPA 인증) |
+| Unity 앱 | 네이티브 SDK로 받은 ID 토큰을 `POST /auth/social/{provider}`로 보내고, Sanctum 토큰을 받는다. 이후 `Authorization: Bearer {token}` |
+| 홈페이지 | **`/api/v1`을 쓰지 않는다.** Inertia 웹 라우트(`routes/web.php`)와 세션 로그인(Socialite 리디렉션)을 쓴다 ([ADR-002](../../07-meetings/decisions/ADR-002-tech-stack.md)). 웹 컨트롤러와 API 컨트롤러는 같은 서비스와 검증 규칙을 공유한다 |
 | 관리자 | Filament 화면만 사용. 관리자 전용 API는 1차에 두지 않음 |
 
-- 로그인 요청에 `device_name`(예: `Unity Android`)을 보낸다. 같은 `device_name`으로 다시 로그인하면 이전 토큰을 폐기한다.
+- 소셜 로그인 요청에 `device_name`(예: `Unity Android`)을 보낸다. 같은 `device_name`으로 다시 로그인하면 이전 토큰을 폐기한다.
+- 서버는 ID 토큰의 서명·발급자·대상·만료를 검증하고, 앱이 따로 보낸 이메일·이름은 믿지 않는다.
 - 토큰 유효기간은 **60일**. 만료되면 `401 UNAUTHENTICATED`를 받고 다시 로그인한다 (§10-2).
-- 로그아웃은 현재 기기의 토큰만 폐기한다. 비밀번호를 바꾸면 모든 토큰을 폐기한다.
+- 로그아웃은 현재 기기의 토큰만 폐기한다. 탈퇴하면 모든 토큰을 폐기한다.
+- **가입 미완료(`pending`) 회원**은 `/auth/*` 엔드포인트만 호출할 수 있다. 그 밖의 로그인 필요 API는 `403 SIGNUP_INCOMPLETE`를 받는다.
 - 앱은 토큰을 Android Keystore / iOS Keychain에 저장하고 로그에 남기지 않는다(설계서 §5.10).
 
 ## 3. 응답 형식
@@ -95,10 +99,12 @@
 |---|---|---|
 | `VALIDATION_FAILED` | 422 | 입력값 오류 |
 | `UNAUTHENTICATED` | 401 | 로그인 필요, 토큰 만료 |
-| `INVALID_CREDENTIALS` | 401 | 이메일 또는 비밀번호 불일치 |
-| `EMAIL_NOT_VERIFIED` | 403 | 이메일 인증 필요 (리뷰·글 작성 등) |
+| `SOCIAL_TOKEN_INVALID` | 401 | 소셜 ID 토큰 검증 실패 (서명·대상·만료) |
+| `SIGNUP_INCOMPLETE` | 403 | 가입 미완료 (약관 동의·닉네임 설정 필요) |
 | `ACCOUNT_SUSPENDED` | 403 | 정지된 회원 |
-| `REJOIN_RESTRICTED` | 403 | 탈퇴 후 30일 이내 재가입 |
+| `REJOIN_RESTRICTED` | 403 | 탈퇴 후 30일 이내 같은 소셜 계정으로 재가입 |
+| `SOCIAL_ACCOUNT_IN_USE` | 409 | 연결하려는 소셜 계정이 이미 다른 회원에 연결됨 |
+| `LAST_LOGIN_METHOD` | 409 | 남은 로그인 수단이 하나뿐이라 연결 해제 불가 |
 | `FORBIDDEN` | 403 | 권한 없음 (남의 글 수정 등) |
 | `REVIEW_BANNED` | 403 | 리뷰 작성 제한 중. `errors.ends_at` 포함 (영구면 `null`) |
 | `NOT_FOUND` | 404 | 리소스 없음 |
@@ -118,33 +124,57 @@
 
 | 대상 | 제한 | 기준 |
 |---|---|---|
-| 로그인, 비밀번호 재설정 요청 | 분당 5회 | 이메일 + IP |
-| 회원가입, 인증 메일 재발송 | 시간당 5회 | IP |
+| 소셜 로그인 | 분당 10회 | IP |
+| 가입 완료 (닉네임 설정) | 분당 5회 | 회원 |
 | 리뷰·게시글 작성 | 분당 3회 | 회원 |
 | 댓글 작성, 추천, 신고 | 분당 20회 | 회원 |
 | 그 밖의 API | 분당 120회 | 회원 또는 IP |
 
 ## 7. 엔드포인트
 
-인증 열: `-` 불필요, `O` 로그인 필요, `V` 로그인 + 이메일 인증 필요. 굵은 글씨는 설계서에 없던 엔드포인트다.
+인증 열: `-` 불필요, `O` 로그인 + 가입 완료 필요, `P` 로그인만 필요(가입 미완료도 가능). 굵은 글씨는 설계서에 없던 엔드포인트다.
 
 ### 7.1 인증·계정
 
+설계서의 이메일 가입·로그인·비밀번호 재설정 엔드포인트는 소셜 로그인 전환으로 **없앴다** (ADR-003).
+
 | Method | URL | 기능 | 인증 |
 |---|---|---|---|
-| POST | /auth/register | 회원가입 (인증 메일 발송) | - |
-| POST | /auth/login | 로그인, 토큰 발급 | - |
-| POST | /auth/logout | 로그아웃 (현재 토큰 폐기) | O |
-| GET | /auth/me | 내 정보 (잔액·등급·제재 상태 포함) | O |
-| POST | /auth/forgot-password | 비밀번호 재설정 메일 | - |
-| POST | /auth/reset-password | 비밀번호 재설정 | - |
-| **POST** | **/auth/email/resend** | 인증 메일 재발송 | O |
-| **PUT** | **/auth/password** | 비밀번호 변경 (모든 토큰 폐기) | O |
-| **DELETE** | **/auth/me** | 회원 탈퇴 (비밀번호 확인) | O |
+| **POST** | **/auth/social/{provider}** | 소셜 로그인 (`google`/`apple`). 처음이면 계정 생성. Sanctum 토큰 발급 | - |
+| **POST** | **/auth/signup/complete** | 가입 완료 (약관 동의, 만 14세 이상 확인, 닉네임). 가입 포인트 지급 | P |
+| **GET** | **/auth/nickname-check** | 닉네임 사용 가능 여부 (`nickname`) | P |
+| POST | /auth/logout | 로그아웃 (현재 토큰 폐기) | P |
+| GET | /auth/me | 내 정보 (가입 완료 여부, 잔액·등급·제재 상태, 연결된 소셜 계정) | P |
+| **DELETE** | **/auth/me** | 회원 탈퇴. 모든 토큰 폐기, Apple·Google 토큰 폐기 (ADR-003 §5) | P |
+| **POST** | **/auth/social-accounts/{provider}** | 다른 소셜 계정 연결 (ID 토큰 전송) | O |
+| **DELETE** | **/auth/social-accounts/{provider}** | 소셜 계정 연결 해제 (마지막 하나는 불가) | O |
 | **POST** | **/devices** | FCM 기기 토큰 등록·갱신 | O |
-| **DELETE** | **/devices/{token}** | 기기 토큰 삭제 (로그아웃 시) | O |
+| **DELETE** | **/devices/{token}** | 기기 토큰 삭제 (로그아웃 시) | P |
 
-이메일 인증 링크는 웹 페이지로 연다. 인증이 끝나면 가입 포인트를 지급한다.
+**소셜 로그인 요청 예시**
+```json
+{
+  "id_token": "eyJ...",
+  "authorization_code": "c1a...",
+  "device_name": "Unity iOS"
+}
+```
+- `authorization_code`는 Apple만 보낸다. 서버가 이 코드로 refresh token을 받아 탈퇴 시 토큰 폐기에 쓴다.
+
+**소셜 로그인 응답 예시**
+```json
+{
+  "success": true,
+  "message": "로그인되었습니다.",
+  "data": {
+    "access_token": "발급된_토큰",
+    "token_type": "Bearer",
+    "signup_completed": false,
+    "user": { "id": 100, "nickname": null }
+  }
+}
+```
+- `signup_completed: false`면 앱이 가입 완료 화면(약관·닉네임)을 띄운다.
 
 ### 7.2 게임
 
@@ -173,17 +203,17 @@
 | Method | URL | 기능 | 인증 |
 |---|---|---|---|
 | GET | /games/{id}/reviews | 리뷰 목록 | - |
-| POST | /games/{id}/reviews | 리뷰 작성 (포인트 지급) | V |
+| POST | /games/{id}/reviews | 리뷰 작성 (포인트 지급) | O |
 | GET | /reviews/{id} | 리뷰 상세 | - |
-| PUT | /reviews/{id} | 리뷰 수정 (수정 이력 저장) | V |
+| PUT | /reviews/{id} | 리뷰 수정 (수정 이력 저장) | O |
 | DELETE | /reviews/{id} | 리뷰 삭제 (`deleted`) | O |
-| POST | /reviews/{id}/like | 추천 (작성자 포인트 지급) | V |
-| DELETE | /reviews/{id}/like | 추천 취소 | V |
+| POST | /reviews/{id}/like | 추천 (작성자 포인트 지급) | O |
+| DELETE | /reviews/{id}/like | 추천 취소 | O |
 | **GET** | **/reviews/{id}/comments** | 댓글 목록 | - |
-| POST | /reviews/{id}/comments | 댓글 작성 (포인트 지급) | V |
-| **PUT** | **/review-comments/{id}** | 댓글 수정 | V |
+| POST | /reviews/{id}/comments | 댓글 작성 (포인트 지급) | O |
+| **PUT** | **/review-comments/{id}** | 댓글 수정 | O |
 | **DELETE** | **/review-comments/{id}** | 댓글 삭제 | O |
-| POST | /reviews/{id}/reports | 신고 | V |
+| POST | /reviews/{id}/reports | 신고 | O |
 
 - 목록 쿼리 `sort`: `likes`(기본), `latest`, `score_high`, `score_low`
 - 공개(`published`)가 아닌 리뷰는 작성자 본인에게만 보이고 그 밖에는 404다. 본인에게는 `status`, `hidden_reason`을 준다.
@@ -202,7 +232,7 @@
 - `ratings`는 선택이고, 넣은 항목만 저장한다(키는 `rating-categories`의 slug).
 
 **리뷰 작성 실패 순서** (먼저 걸리는 것을 응답)
-`EMAIL_NOT_VERIFIED` → `REVIEW_BANNED` → `GAME_NOT_RELEASED` → `REVIEW_HIDDEN_EXISTS` → `REVIEW_ALREADY_EXISTS` → `VALIDATION_FAILED`
+`REVIEW_BANNED` → `GAME_NOT_RELEASED` → `REVIEW_HIDDEN_EXISTS` → `REVIEW_ALREADY_EXISTS` → `VALIDATION_FAILED`
 
 ### 7.4 출시 일정
 
@@ -224,18 +254,18 @@
 |---|---|---|---|
 | GET | /boards | 게시판 목록 | - |
 | GET | /boards/{slug}/posts | 게시글 목록 (`q`, `sort`: `latest`/`likes`) | - |
-| POST | /boards/{slug}/posts | 게시글 작성 (포인트 지급) | V |
+| POST | /boards/{slug}/posts | 게시글 작성 (포인트 지급) | O |
 | GET | /posts/{id} | 게시글 상세 (조회수 증가) | - |
-| PUT | /posts/{id} | 게시글 수정 | V |
+| PUT | /posts/{id} | 게시글 수정 | O |
 | DELETE | /posts/{id} | 게시글 삭제 | O |
-| **POST** | **/posts/{id}/attachments** | 첨부파일 업로드 (multipart) | V |
+| **POST** | **/posts/{id}/attachments** | 첨부파일 업로드 (multipart) | O |
 | **GET** | **/posts/{id}/comments** | 댓글 목록 | - |
-| POST | /posts/{id}/comments | 댓글 작성 (포인트 지급) | V |
-| **PUT** | **/post-comments/{id}** | 댓글 수정 | V |
+| POST | /posts/{id}/comments | 댓글 작성 (포인트 지급) | O |
+| **PUT** | **/post-comments/{id}** | 댓글 수정 | O |
 | **DELETE** | **/post-comments/{id}** | 댓글 삭제 | O |
-| POST | /posts/{id}/like | 추천 | V |
-| **DELETE** | **/posts/{id}/like** | 추천 취소 | V |
-| **POST** | **/posts/{id}/reports** | 신고 | V |
+| POST | /posts/{id}/like | 추천 | O |
+| **DELETE** | **/posts/{id}/like** | 추천 취소 | O |
+| **POST** | **/posts/{id}/reports** | 신고 | O |
 
 첨부파일 제한(형식·용량)은 요구사항 정의에서 정한다.
 
@@ -287,7 +317,7 @@
 |---|---|---|---|
 | **GET** | **/events** | 진행 중·예정 이벤트 | - |
 | **GET** | **/events/{id}** | 이벤트 상세 (내 응모 여부) | - |
-| **POST** | **/events/{id}/entries** | 응모 (포인트 차감) | V |
+| **POST** | **/events/{id}/entries** | 응모 (포인트 차감) | O |
 | **GET** | **/announcements** | 공지 목록 (고정 공지 먼저) | - |
 | **GET** | **/announcements/{id}** | 공지 상세 | - |
 
@@ -295,12 +325,14 @@
 
 | 대상 | 설계서 | 이 명세 | 이유 |
 |---|---|---|---|
-| 기본 주소 | `api.{도메인}` 서브도메인 | 웹과 같은 도메인 `/api/v1` | 홈페이지 Vue가 같은 API를 세션 인증으로 쓰기 쉬움 |
+| 기본 주소 | `api.{도메인}` 서브도메인 | 웹과 같은 도메인 `/api/v1` | 하나의 Laravel 앱을 도메인 하나로 운영 (인증서·CORS 설정 단순) |
+| 인증 | 이메일 가입·로그인, 비밀번호 재설정 | Google·Apple 소셜 로그인 + 가입 완료 단계 | ADR-003 |
+| 홈페이지의 API 사용 | 홈페이지 Vue가 API 호출 | 홈페이지는 Inertia 웹 라우트, API는 Unity용 | ADR-002 |
 | 게임 검색 | `GET /games/search` | `GET /games?q=` | 검색과 필터를 한 엔드포인트로 합침 |
 | 오류 응답 | `success`, `message`, `errors` | `code` 추가 | 앱이 메시지 문구가 아닌 고정 코드로 분기 |
 | 포인트 응답 | — | `data.point` | 출석·작성 직후 잔액을 바로 갱신 |
 | `DELETE /reviews/{id}` | 삭제 또는 비공개 | 작성자 삭제만 | 숨김은 관리자 기능 (리뷰 정책 §5) |
-| 추가 | — | 위 표에 굵게 표시한 엔드포인트 | 이메일 인증·탈퇴·기기 토큰·댓글 수정/삭제·이벤트·공지 등 정책과 ERD에 필요한 기능 |
+| 추가 | — | 위 표에 굵게 표시한 엔드포인트 | 소셜 로그인·가입 완료·계정 연결·탈퇴·기기 토큰·댓글 수정/삭제·이벤트·공지 등 정책과 ERD에 필요한 기능 |
 
 ## 9. OpenAPI 문서
 
@@ -319,3 +351,5 @@
 | 3 | 오류 응답에 `code`를 추가할 것인가? | **추가한다** (§5) |
 | 4 | §6 요청 제한 수치가 적절한가? | **제안값으로 시작**하고 운영하며 조정 |
 | 5 | OpenAPI는 Scramble로 자동 생성할 것인가? | **자동 생성한다** (§9) |
+
+**변경 이력:** 2026-11-19 ADR-002(Inertia)·ADR-003(소셜 로그인 전용) 결정에 따라 §2 인증, §5 오류 코드, §6 요청 제한, §7.1 인증 엔드포인트, §8을 수정했다.

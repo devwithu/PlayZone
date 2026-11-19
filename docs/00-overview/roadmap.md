@@ -30,24 +30,26 @@
 | 작업 | 산출물 | 상태 |
 |---|---|---|
 | 저장소 구조 결정 | `docs/07-meetings/decisions/ADR-001-repo-structure.md` | 완료 |
-| 기술 스택 확정 (PHP 8.3, Laravel 13, Filament 5, PostgreSQL, Redis) | `docs/07-meetings/decisions/ADR-002-tech-stack.md` | |
+| 기술 스택 확정 (PHP 8.3, Laravel 13, Filament 5, PostgreSQL, Redis) | `docs/07-meetings/decisions/ADR-002-tech-stack.md` | 완료 |
+| 소셜 로그인 방식 결정 (Google·Apple 전용) | `docs/07-meetings/decisions/ADR-003-social-login.md` | 완료 (미결 2건) |
 | 요구사항 정의 (REQ/WEB/MOB ID 부여) | `docs/01-planning/requirements/` | |
 | 포인트 정책 (지급·차감 기준, 중복 방지 키) | `docs/01-planning/policies/point-policy.md` | 완료 |
 | 리뷰 정책 (게임당 리뷰 수, 공개 상태, 평균 반영) | `docs/01-planning/policies/review-policy.md` | 완료 |
 | ERD (9개 영역 테이블·제약·인덱스) | `docs/03-architecture/database/erd.md` | 완료 |
 | API 명세 (`/api/v1`, 응답 규격, 오류 코드) | `docs/03-architecture/api/api-spec.md` (OpenAPI는 1단계에서 자동 생성) | 완료 |
 | 주요 화면 와이어프레임 | `docs/02-design/wireframes/` | |
-| Apple·Google 개발자 계정 등록 | 승인에 시간이 걸릴 수 있어 미리 진행 | |
+| Apple·Google 개발자 계정 등록, Google OAuth 클라이언트·Apple Sign in 키 발급 | 승인에 시간이 걸릴 수 있어 미리 진행 (ADR-003 §8) | |
 
 ## 1단계: 기반 구축 (W3–W5)
 
-- `backend/`에 Laravel 프로젝트 생성, Vue와 Vite 연결, PostgreSQL·Redis 연결
-- 회원·권한 마이그레이션, 회원가입·로그인 (웹 세션 + Sanctum 토큰)
+- `backend/`에 Laravel 공식 Vue 스타터 키트로 프로젝트 생성 (PHP 8.5), 이메일·비밀번호 인증(Fortify) 제거, PostgreSQL·Redis 연결
+- **Inertia SSR 확인:** 게임 상세 페이지 첫 HTML에 본문·메타 태그가 들어가는지 검증 (실패 시 Blade 방식으로 전환 결정, ADR-002)
+- 회원·권한·소셜 계정 마이그레이션, Google·Apple 로그인 (웹 Socialite + API ID 토큰 검증), 가입 완료 화면, 탈퇴 (ADR-003)
 - Filament 설치, 회원 관리 화면
 - 공통 API 응답 형식, 테스트 환경, GitHub Actions CI
 - 개발 환경 문서: `docs/04-development/environment-setup.md`
 
-**완료 기준:** 웹과 API 양쪽에서 같은 계정으로 로그인할 수 있다.
+**완료 기준:** 웹과 API 양쪽에서 같은 Google·Apple 계정으로 로그인할 수 있고, 게임 상세 페이지가 SSR로 렌더링된다.
 
 ## 2단계: 게임 정보 (W6–W9)
 
@@ -69,7 +71,7 @@
 
 ## 4단계: Unity·알림·테스트 (W16–W21)
 
-- `apps/mobile/`에서 Unity 로그인, 토큰 저장, 핵심 API 연동
+- `apps/mobile/`에서 Unity Google·Apple 네이티브 로그인, 토큰 저장, 핵심 API 연동
 - FCM 푸시, Reverb 실시간 알림 (DB 저장이 끝난 뒤 이벤트 발행)
 - QA 체크리스트, 보안 점검 (요청 제한, 업로드 검증, 관리자 권한)
 - 운영 서버 구성, 백업과 복구 테스트, 앱 스토어 심사 제출
