@@ -64,7 +64,7 @@
 
 ## 5. 개발 착수 전 확정할 사항
 
-- [ ] ERD (데이터베이스 설계)
-- [ ] API 명세
-- [ ] 포인트 정책 (지급·차감 기준, 중복 지급 방지 규칙)
-- [ ] 리뷰 정책 (게임별 리뷰 작성 규칙, 공개 상태, 평균 점수 반영 기준)
+- [x] ERD (데이터베이스 설계) → [erd.md](../03-architecture/database/erd.md)
+- [x] API 명세 → [api-spec.md](../03-architecture/api/api-spec.md)
+- [x] 포인트 정책 (지급·차감 기준, 중복 지급 방지 규칙) → [point-policy.md](../01-planning/policies/point-policy.md)
+- [x] 리뷰 정책 (게임별 리뷰 작성 규칙, 공개 상태, 평균 점수 반영 기준) → [review-policy.md](../01-planning/policies/review-policy.md)
