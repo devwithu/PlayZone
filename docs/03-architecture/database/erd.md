@@ -465,7 +465,7 @@ erDiagram
 | 2 | 탈퇴 후 재가입을 허용하는가? | 허용하되 **탈퇴 후 30일 동안 같은 소셜 계정으로는 막는다**. 소셜 계정 식별자의 해시를 `withdrawn_identity_hashes`에 30일 보관한다 (가입 포인트 반복 수령 방지). 소셜 로그인 전환(ADR-003)에 따라 이메일 해시에서 변경 |
 | 3 | 권한 관리 방식은? | 1차는 설계서대로 `roles`/`role_user`만 사용한다. 세부 권한이 필요해지면 `spatie/laravel-permission`을 검토한다 |
 | 4 | 닉네임 UNIQUE를 대소문자 구분 없이 할 것인가? | **구분 없이.** `lower(nickname)` UNIQUE 인덱스 |
-| 5 | 게임 검색 방식은? | 1차는 PostgreSQL `pg_trgm`을 쓴다. 검색 요구가 커지면 외부 검색엔진을 검토한다 (§4 games) |
+| 5 | 게임 검색 방식은? | 1차는 PostgreSQL `pg_trgm`을 쓴다. 검색 요구가 커지면 외부 검색엔진을 검토한다 (§4 games). 기본 검색은 `ILIKE` 중간 일치, 오타 추천은 `word_similarity`(`<%`)를 쓴다 (한국어 검증 결과: [개발 환경 §6](../../04-development/environment-setup.md)) |
 
 ## 13. 2차 확장 (P2, 방향만)
 

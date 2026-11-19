@@ -1,0 +1,25 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 에디터 (공유할 설정은 .editorconfig로)
+.idea/
+.vscode/
+*.swp
+
+# 로컬 환경 변수 (compose 포트 변경 등). Laravel의 .env는 backend/.gitignore에서 관리
+/.env
+
+# 의존성·빌드 (Laravel 생성 후 backend/.gitignore에도 포함됨)
+node_modules/
+vendor/
+
+# Unity (apps/mobile)
+/apps/mobile/[Ll]ibrary/
+/apps/mobile/[Tt]emp/
+/apps/mobile/[Oo]bj/
+/apps/mobile/[Bb]uild/
+/apps/mobile/[Bb]uilds/
+/apps/mobile/[Ll]ogs/
+/apps/mobile/[Uu]ser[Ss]ettings/

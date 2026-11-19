@@ -1,0 +1,49 @@
+# PlayZone 로컬 개발용 PostgreSQL·Redis
+# Mac(Docker Desktop)과 Windows(Docker Desktop + WSL2)에서 같은 설정으로 실행한다.
+# 실행: docker compose up -d   /  중지: docker compose stop   /  초기화: docker compose down -v
+#
+# 호스트 포트는 다른 프로젝트와 겹치지 않도록 기본 5433, 6380을 쓴다.
+# 바꾸려면 저장소 루트에 .env 파일을 만들고 PLAYZONE_DB_PORT, PLAYZONE_REDIS_PORT를 지정한다.
+
+name: playzone
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: game_evaluation
+      POSTGRES_USER: game_user
+      POSTGRES_PASSWORD: secret   # 로컬 개발 전용
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.utf8"
+      TZ: UTC
+    ports:
+      - "${PLAYZONE_DB_PORT:-5433}:5432"
+    volumes:
+      # PostgreSQL 18 이미지부터 데이터 위치가 /var/lib/postgresql 아래로 바뀌었다
+      - postgres-data:/var/lib/postgresql
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U game_user -d game_evaluation"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:8
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${PLAYZONE_REDIS_PORT:-6380}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+# 바인드 마운트 대신 named volume을 쓴다 (Windows 파일 권한·속도 문제 회피)
+volumes:
+  postgres-data:
+  redis-data:

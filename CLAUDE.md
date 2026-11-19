@@ -6,6 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **사용자와의 모든 대화는 한국어로 한다.** (Always respond to the user in Korean.)
 
+## Development environment
+
+The user works on macOS at home and Windows (WSL2) at work. See `docs/04-development/environment-setup.md`.
+
+- PostgreSQL 18 and Redis 8 run in Docker from the repo root: `docker compose up -d` (`stop` keeps data, `down -v` wipes it and re-runs `docker/postgres/init/`). Host ports are **5433** (Postgres) and **6380** (Redis), because 5432/6379 are used by another project's containers on this Mac. Never stop or touch the `girlsidle-*` containers.
+- DBs are `game_evaluation` (dev) and `game_evaluation_test` (tests), user `game_user` / `secret`, both with `pg_trgm`.
+- PHP 8.5, Composer and Node 26 are installed on the host (inside WSL2 on Windows), not in Docker.
+- Line endings are LF everywhere (`.gitattributes`, `.editorconfig`). Prefer composer/npm scripts over bash-only scripts so commands work on both OSes. File-name casing must match class names exactly, because macOS is case-insensitive but Linux/WSL is not.
+
 ## Current state
 
 This repo is a **scaffold with no application code yet**. Every `src/`, `migrations/`, `shared/*` and `scripts/` directory holds only a `.gitkeep`, and most docs under `docs/` are empty placeholders. There are no build, lint or test commands yet. Do not invent any. Add them here once a `composer.json` / `package.json` / Unity project exists.

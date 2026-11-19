@@ -1,0 +1,31 @@
+# Mac·Windows를 오가며 작업하므로 저장소의 줄바꿈은 LF로 통일한다.
+* text=auto eol=lf
+
+# Windows 전용 스크립트만 CRLF
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# 바이너리
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.zip   binary
+
+# Unity (apps/mobile): 에셋은 바이너리, YAML 메타는 텍스트
+*.unity     text eol=lf
+*.prefab    text eol=lf
+*.asset     text eol=lf
+*.meta      text eol=lf
+*.fbx       binary
+*.psd       binary
+*.wav       binary
+*.mp3       binary
+*.ogg       binary
