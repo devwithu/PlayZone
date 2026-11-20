@@ -14,12 +14,16 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import { home, login } from '@/routes';
 import { index as games } from '@/routes/games';
+import { index as releases } from '@/routes/releases';
 
 // 로그인 없이 보는 공개 화면(게임, 출시 일정 등)의 레이아웃. SSR 대상이므로 window·document를 쓰지 않는다
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 
-const navItems = [{ title: '게임', href: games().url }];
+const navItems = [
+    { title: '게임', href: games().url },
+    { title: '출시 일정', href: releases().url },
+];
 
 const isCurrent = (href: string) =>
     page.url === href ||

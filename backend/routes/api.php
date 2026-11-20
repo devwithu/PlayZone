@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Auth\AccountController;
 use App\Http\Controllers\Api\V1\Auth\SocialAccountController;
 use App\Http\Controllers\Api\V1\Auth\SocialLoginController;
 use App\Http\Controllers\Api\V1\GameController;
+use App\Http\Controllers\Api\V1\ReleaseController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,4 +46,9 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::get('games/{game}', [GameController::class, 'show'])->whereNumber('game')->name('games.show');
     Route::get('genres', [GameController::class, 'genres'])->name('genres.index');
     Route::get('platforms', [GameController::class, 'platforms'])->name('platforms.index');
+
+    // 출시 일정 (§7.4) -: 로그인 없이 호출. 출시 알림 켜기·끄기는 관심 게임 작업에서 추가
+    Route::get('releases', [ReleaseController::class, 'index'])->name('releases.index');
+    Route::get('releases/upcoming', [ReleaseController::class, 'upcoming'])->name('releases.upcoming');
+    Route::get('games/{game}/releases', [ReleaseController::class, 'game'])->whereNumber('game')->name('games.releases');
 });

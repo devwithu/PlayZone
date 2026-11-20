@@ -55,3 +55,13 @@ export const releaseStatusLabels: Record<ReleaseStatus, string> = {
     released: '출시',
     cancelled: '취소',
 };
+
+/** 출시 일정 한 줄 (api-spec §7.4). 같은 게임이 같은 날 여러 플랫폼으로 나오면 한 줄 */
+export type ReleaseScheduleEntry = {
+    game: Pick<GameListItem, 'id' | 'title' | 'slug' | 'cover_url'>;
+    platforms: Taxonomy[];
+    release_date: string | null;
+    date_precision: ReleaseDate['date_precision'];
+    release_status: ReleaseStatus;
+    display_date: string;
+};
