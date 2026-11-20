@@ -42,6 +42,8 @@ class AppLoginService
             email: $identity->email,
             emailVerified: $identity->emailVerified,
             refreshToken: $refreshToken,
+            // 앱 로그인 토큰은 ID 토큰의 aud(앱 번들 ID)로 발급된다
+            refreshTokenClientId: $refreshToken !== null ? $identity->audience : null,
         );
 
         // 같은 기기 이름으로 다시 로그인하면 이전 토큰을 폐기한다 (api-spec §2)

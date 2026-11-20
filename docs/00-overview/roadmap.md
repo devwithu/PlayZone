@@ -49,7 +49,8 @@
 - [x] 회원·권한·소셜 계정 마이그레이션, 웹 Google·Apple 로그인(Socialite), 가입 완료 화면(만 14세 확인·약관·닉네임), 로그아웃 (2026-11-19, 가짜 로그인 응답으로 테스트, 실제 키로는 미확인)
 - [x] 앱 소셜 로그인 API `POST /api/v1/auth/social/{provider}` (2026-11-20): ID 토큰 검증(서명·iss·aud·exp), Sanctum 토큰 발급, Apple authorization code → refresh token 저장. 테스트용 키로 검증, 실제 키로는 미확인
 - [x] 앱 인증 API: 가입 완료, 닉네임 확인, 내 정보, 로그아웃 (2026-11-20, api-spec §7.1. 등급·제재·가입 포인트는 3단계)
-- [ ] 마이페이지 계정 연결, 탈퇴 (ADR-003)
+- [x] 회원 탈퇴 (2026-11-20): 웹 설정 화면·앱 `DELETE /api/v1/auth/me`, 익명화, 30일 재가입 제한, 토큰·세션 폐기, Apple 토큰 폐기(큐). 포인트 소멸은 3단계
+- [ ] 마이페이지 계정 연결 (ADR-003 §7-1)
 - Filament 설치, 회원 관리 화면
 - [x] 공통 API 응답 형식 (2026-11-20): `/api/v1` 라우트, Sanctum(토큰 60일), 성공·목록·오류 응답, 오류 코드 enum, 기본 요청 제한, Scramble OpenAPI(`/docs/api`). 규칙은 `docs/04-development/coding-conventions.md` §1
 - 테스트 환경, GitHub Actions CI
@@ -68,6 +69,7 @@
 ## 3단계: 커뮤니티·포인트 (W10–W15)
 
 - `PointService` 원장 구조를 먼저 만들고, 이후 기능은 모두 이 서비스를 통해 포인트를 처리한다.
+  - 1단계에서 미뤄 둔 연결: 가입 포인트(`SignupService::complete()`), 탈퇴 시 잔액 소멸 `withdraw_expire`(`WithdrawalService::withdraw()`), 내 정보의 등급·제재(`MeResource`)
 - 출석 (트랜잭션 + UNIQUE 제약, 동시 요청 테스트)
 - 리뷰·별점·추천·댓글, 평균 점수 반영, 작성 포인트 지급
 - 게시판·댓글, 마이페이지, 기본 랭킹

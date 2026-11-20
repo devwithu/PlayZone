@@ -145,6 +145,7 @@ class SocialLoginTest extends TestCase
 
         $account = SocialAccount::query()->sole();
         $this->assertSame('apple-refresh-token', $account->refresh_token);
+        $this->assertSame(self::APPLE_AUDIENCE, $account->refresh_token_client_id);
         // DB에는 암호화되어 저장된다
         $this->assertNotSame('apple-refresh-token', DB::table('social_accounts')->value('refresh_token'));
 

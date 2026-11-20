@@ -5,6 +5,7 @@ namespace App\Services\SocialAuth;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -56,6 +57,36 @@ class AppleTokenClient
         }
 
         return $refreshToken;
+    }
+
+    /**
+     * 탈퇴 시 refresh token을 폐기해 Apple 계정과 앱의 연결을 끊는다 (ADR-003 §5, Apple TN3194).
+     *
+     * @return bool false면 Apple 키가 설정되지 않아 호출하지 않았다는 뜻 (재시도해도 소용없음)
+     *
+     * @throws RuntimeException Apple이 오류로 응답함 (큐 작업이 재시도한다)
+     */
+    public function revokeRefreshToken(string $refreshToken, string $clientId): bool
+    {
+        $clientSecret = $this->clientSecret($clientId);
+        if ($clientSecret === null) {
+            Log::warning('Apple key is not configured; skipped token revoke');
+
+            return false;
+        }
+
+        $response = Http::asForm()->timeout(5)->post(self::BASE_URL.'/auth/revoke', [
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret,
+            'token' => $refreshToken,
+            'token_type_hint' => 'refresh_token',
+        ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException("Apple token revoke failed: HTTP {$response->status()} ".(string) $response->json('error'));
+        }
+
+        return true;
     }
 
     /**

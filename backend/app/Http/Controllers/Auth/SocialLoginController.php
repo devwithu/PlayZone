@@ -47,6 +47,8 @@ class SocialLoginController extends Controller
                 emailVerified: filter_var($socialUser->getRaw()['email_verified'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 // Apple 탈퇴 시 토큰 폐기에 필요 (ADR-003 §5)
                 refreshToken: $provider === LoginProvider::Apple ? $socialUser->refreshToken : null,
+                // 웹 로그인 토큰은 Services ID로 발급된다
+                refreshTokenClientId: $provider === LoginProvider::Apple ? $this->appleWebClientId() : null,
             );
         } catch (LoginDeniedException $e) {
             return to_route('login')->with('loginError', $e->getMessage());
@@ -60,6 +62,13 @@ class SocialLoginController extends Controller
         }
 
         return redirect()->intended(route('home'));
+    }
+
+    private function appleWebClientId(): ?string
+    {
+        $clientId = config('services.apple.client_id');
+
+        return is_string($clientId) && $clientId !== '' ? $clientId : null;
     }
 
     private function driver(LoginProvider $provider): Provider

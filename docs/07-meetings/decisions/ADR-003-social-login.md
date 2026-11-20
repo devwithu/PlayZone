@@ -46,6 +46,8 @@
 - 앱과 웹 모두 **앱 안에서 탈퇴**할 수 있어야 한다 (App Store 심사 기준 5.1.1(v)).
 - 탈퇴 시 **Apple 로그인 계정은 Apple REST API(`/auth/revoke`)로 토큰을 폐기**한다. 이를 위해 Apple 로그인 때 받은 refresh token을 암호화해 저장한다.
 - Google 계정은 Google 토큰 폐기 엔드포인트를 호출한다 (실패해도 탈퇴는 진행).
+  - **2026-11-20 구현 메모:** 웹(Socialite)·앱(ID 토큰) 로그인 모두 Google 토큰을 저장하지 않으므로 폐기할 토큰이 없어 호출하지 않는다. App Store 요구사항은 Apple 토큰 폐기만 해당한다. Google 연결 해제가 꼭 필요해지면 로그인 때 refresh token(offline access)을 받아 저장하도록 바꾼다.
+- Apple 토큰 폐기는 탈퇴 트랜잭션이 커밋된 뒤 암호화된 큐 작업(`RevokeAppleToken`)으로 실행하고, 실패하면 3회까지 재시도한다. 폐기에는 토큰을 발급받은 client_id가 필요해 `social_accounts.refresh_token_client_id`에 함께 저장한다.
 - 탈퇴 후 처리(익명화, 포인트 소멸)는 ERD §12, 포인트 정책 §10을 따른다.
 - **재가입 제한:** 탈퇴 후 30일 동안 같은 소셜 계정(제공자 + `sub`)으로는 다시 가입할 수 없다. 이메일이 아니라 소셜 계정 식별자의 해시를 보관한다.
 

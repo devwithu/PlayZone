@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\AccountController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,3 +12,8 @@ Route::middleware(['auth', 'signup.completed'])->group(function () {
 
     Route::inertia('settings/appearance', 'settings/Appearance')->name('appearance.edit');
 });
+
+// 회원 탈퇴: 가입 미완료 회원도 할 수 있다 (ADR-003 §4)
+Route::delete('settings/account', [AccountController::class, 'destroy'])
+    ->middleware(['auth', 'throttle:5,1'])
+    ->name('account.destroy');

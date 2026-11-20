@@ -20,6 +20,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         // P: 가입 미완료 회원도 호출 가능
         Route::middleware('auth:sanctum')->group(function () {
             Route::get('me', [AccountController::class, 'me'])->name('me');
+            Route::delete('me', [AccountController::class, 'destroy'])->name('withdraw');
             Route::post('signup/complete', [AccountController::class, 'completeSignup'])
                 ->middleware('throttle:signup-complete')
                 ->name('signup.complete');

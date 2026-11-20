@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\DB;
 class SocialLoginService
 {
     /**
+     * @param  string|null  $refreshToken  Apple만: 탈퇴 시 토큰 폐기용
+     * @param  string|null  $refreshTokenClientId  그 토큰을 발급받은 client_id (폐기 요청에 필요)
+     *
      * @throws LoginDeniedException
      */
     public function findOrCreateUser(
@@ -25,10 +28,11 @@ class SocialLoginService
         ?string $email,
         bool $emailVerified,
         ?string $refreshToken = null,
+        ?string $refreshTokenClientId = null,
     ): User {
         $email = $email !== null ? mb_strtolower($email) : null;
 
-        return DB::transaction(function () use ($provider, $providerUserId, $email, $emailVerified, $refreshToken) {
+        return DB::transaction(function () use ($provider, $providerUserId, $email, $emailVerified, $refreshToken, $refreshTokenClientId) {
             $account = SocialAccount::query()
                 ->where('provider', $provider)
                 ->where('provider_user_id', $providerUserId)
@@ -65,6 +69,7 @@ class SocialLoginService
             }
             if ($refreshToken !== null) {
                 $account->refresh_token = $refreshToken;
+                $account->refresh_token_client_id = $refreshTokenClientId;
             }
             $account->last_login_at = now();
             $account->save();

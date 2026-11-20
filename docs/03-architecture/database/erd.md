@@ -91,7 +91,7 @@ erDiagram
 | remember_token | varchar(100) | NULL | Laravel 기본 (웹 로그인 유지) |
 
 - 지금은 Google·Apple 로그인만 사용하므로 `password`는 비워 둔다. 이메일·비밀번호 가입을 추가할 때 DB 구조를 바꾸지 않도록 컬럼과 `password_reset_tokens` 테이블은 유지한다 (ADR-003 §8).
-- 탈퇴 시 `email`은 NULL, `nickname`은 `withdrawn_{id}` 형식의 익명값으로 바꾸고, `social_accounts`를 삭제한다 (§12).
+- 탈퇴 시 `email`은 NULL, `nickname`은 `withdrawn_{id}` 형식의 익명값으로 바꾸고, `social_accounts`를 삭제한다 (§12). 익명값과 겹치지 않게 `withdrawn_`으로 시작하는 닉네임은 가입·변경 때 쓸 수 없다.
 - `pending` 상태로 7일이 지난 계정은 스케줄러가 삭제한다 (ADR-003 §4).
 
 ### social_accounts
@@ -102,6 +102,7 @@ erDiagram
 | provider_user_id | varchar(255) | | 제공자의 사용자 ID (`sub`) |
 | email | varchar(255) | NULL | 제공자가 준 이메일 (Apple은 첫 로그인 때만 제공) |
 | refresh_token | text | NULL, **암호화 저장** | Apple 탈퇴 시 토큰 폐기용 (ADR-003 §5) |
+| refresh_token_client_id | varchar(255) | NULL | 그 토큰을 발급받은 client_id. 웹 로그인은 Services ID, 앱 로그인은 앱 번들 ID. Apple 폐기 요청에 필요 (2026-11-20 추가) |
 | last_login_at | timestamptz | | |
 
 - UNIQUE `(provider, provider_user_id)` (한 소셜 계정은 한 회원에만 연결)

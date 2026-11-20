@@ -8,6 +8,7 @@ use App\Http\Resources\Api\V1\MeResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\User;
 use App\Services\SignupService;
+use App\Services\WithdrawalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -68,6 +69,20 @@ class AccountController extends Controller
         $this->user($request)->currentAccessToken()->delete();
 
         return ApiResponse::success(message: '로그아웃되었습니다.');
+    }
+
+    /**
+     * 회원 탈퇴
+     *
+     * 앱의 확인 화면(포인트 소멸, 30일 재가입 제한, 작성한 글은 "탈퇴한 회원"으로 남음)을 거친 뒤 호출한다.
+     * 개인정보를 지우고 모든 기기의 로그인을 끊는다. Apple 로그인 계정은 Apple 연결도 폐기한다.
+     * 같은 소셜 계정으로는 30일 동안 다시 가입할 수 없다.
+     */
+    public function destroy(Request $request, WithdrawalService $service): JsonResponse
+    {
+        $service->withdraw($this->user($request));
+
+        return ApiResponse::success(message: '탈퇴되었습니다.');
     }
 
     private function user(Request $request): User
