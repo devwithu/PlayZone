@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\ApiErrorCode;
 use App\Enums\UserStatus;
+use App\Exceptions\ApiException;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +20,18 @@ class EnsureSignupCompleted
         $user = $request->user();
 
         if ($user === null) {
+            return $next($request);
+        }
+
+        // 앱(API)은 화면 이동 대신 오류 코드로 알린다 (api-spec §2, §5)
+        if ($request->is('api/*')) {
+            match ($user->status) {
+                UserStatus::Active => null,
+                UserStatus::Pending => throw ApiException::of(ApiErrorCode::SignupIncomplete),
+                UserStatus::Suspended => throw ApiException::of(ApiErrorCode::AccountSuspended),
+                UserStatus::Withdrawn => throw ApiException::of(ApiErrorCode::Unauthenticated),
+            };
+
             return $next($request);
         }
 

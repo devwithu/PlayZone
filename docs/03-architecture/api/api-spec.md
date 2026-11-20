@@ -165,7 +165,9 @@
   "device_name": "Unity iOS"
 }
 ```
-- `authorization_code`는 Apple만 보낸다. 서버가 이 코드로 refresh token을 받아 탈퇴 시 토큰 폐기에 쓴다.
+- `authorization_code`는 Apple만 보낸다. 서버가 이 코드로 refresh token을 받아 탈퇴 시 토큰 폐기에 쓴다. 교환에 실패해도 로그인은 성공한다(서버 로그에 경고).
+- 서버가 허용하는 ID 토큰 대상(`aud`)은 Google은 `GOOGLE_ID_TOKEN_AUDIENCES`(Unity가 ID 토큰을 요청할 때 쓰는 클라이언트 ID, 보통 웹 클라이언트 ID), Apple은 `APPLE_ID_TOKEN_AUDIENCES`(iOS 앱 번들 ID)다. Apple 코드 교환에는 `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`(.p8)가 필요하다.
+- 실패: `401 SOCIAL_TOKEN_INVALID`, `403 ACCOUNT_SUSPENDED`, `403 REJOIN_RESTRICTED`, `422 VALIDATION_FAILED`, `429 RATE_LIMITED`
 
 **소셜 로그인 응답 예시**
 ```json
