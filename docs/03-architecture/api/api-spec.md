@@ -85,9 +85,11 @@
 |---|---|
 | 200 | 조회·수정·삭제 성공 (삭제도 응답 본문을 준다) |
 | 201 | 생성 성공 |
+| 400 | 그 밖의 잘못된 요청 (형식 오류 등) |
 | 401 | 로그인 필요, 토큰 만료 |
 | 403 | 권한 없음, 제재 중, 이메일 미인증 |
 | 404 | 없음 (비공개·삭제된 리소스 포함) |
+| 405 | 지원하지 않는 HTTP 메서드 |
 | 409 | 중복·상태 충돌 (이미 출석, 이미 리뷰 작성 등) |
 | 422 | 입력값 오류 |
 | 429 | 요청 횟수 초과 |
@@ -107,7 +109,8 @@
 | `LAST_LOGIN_METHOD` | 409 | 남은 로그인 수단이 하나뿐이라 연결 해제 불가 |
 | `FORBIDDEN` | 403 | 권한 없음 (남의 글 수정 등) |
 | `REVIEW_BANNED` | 403 | 리뷰 작성 제한 중. `errors.ends_at` 포함 (영구면 `null`) |
-| `NOT_FOUND` | 404 | 리소스 없음 |
+| `NOT_FOUND` | 404 | 리소스 없음 (없는 주소 포함) |
+| `METHOD_NOT_ALLOWED` | 405 | 지원하지 않는 HTTP 메서드. `Allow` 헤더 포함 |
 | `ATTENDANCE_ALREADY_DONE` | 409 | 오늘 이미 출석 |
 | `REVIEW_ALREADY_EXISTS` | 409 | 이 게임에 이미 리뷰가 있음. `errors.review_id` 포함 |
 | `REVIEW_HIDDEN_EXISTS` | 409 | 관리자가 숨긴 리뷰가 있어 새로 쓸 수 없음 |
@@ -117,8 +120,11 @@
 | `NOT_EDITABLE` | 409 | 수정할 수 없는 상태 (숨김·블라인드) |
 | `INSUFFICIENT_POINTS` | 409 | 포인트 부족 (이벤트 응모) |
 | `EVENT_CLOSED` | 409 | 이벤트 기간 아님 또는 정원 마감 |
-| `RATE_LIMITED` | 429 | 요청 횟수 초과 |
-| `SERVER_ERROR` | 500 | 서버 오류 |
+| `BAD_REQUEST` | 400 등 | 위 코드에 해당하지 않는 그 밖의 4xx. HTTP 상태는 실제 값(400, 413 등)을 따른다 |
+| `RATE_LIMITED` | 429 | 요청 횟수 초과. `Retry-After` 헤더(초) 포함 |
+| `SERVER_ERROR` | 500 등 | 서버 오류 (5xx). 상세 내용은 응답하지 않는다 |
+
+코드 목록의 원본은 `backend/app/Enums/ApiErrorCode.php`다. 코드를 추가하면 이 표도 함께 고친다.
 
 ## 6. 요청 제한 (Rate Limit)
 
@@ -339,6 +345,8 @@
 - 1단계에서 [Scramble](https://scramble.dedoc.co/)(`dedoc/scramble`)을 설치해 Laravel 코드(FormRequest, API Resource)에서 OpenAPI 문서를 **자동 생성**한다.
 - 손으로 쓴 YAML은 코드와 쉽게 어긋나므로 따로 관리하지 않는다. 이 문서는 설계 기준으로 유지하고, 상세 스키마는 생성된 문서(`/docs/api`)를 본다.
 - Unity 개발 시 생성된 OpenAPI 파일로 요청을 테스트한다.
+- 개발 PC(`APP_ENV=local`)에서 `http://localhost:8000/docs/api`(화면), `/docs/api.json`(OpenAPI)으로 본다. 운영 환경에서는 열리지 않는다. 파일로 받으려면 `php artisan scramble:export`(→ `backend/api.json`).
+- Scramble은 오류 응답을 Laravel 기본 형식으로 문서화하므로, `ApiErrorResponseTransformer`가 4xx·5xx 응답 본문을 §3의 실패 형식으로 바꾼다.
 
 ## 10. 결정 사항
 
@@ -352,4 +360,6 @@
 | 4 | §6 요청 제한 수치가 적절한가? | **제안값으로 시작**하고 운영하며 조정 |
 | 5 | OpenAPI는 Scramble로 자동 생성할 것인가? | **자동 생성한다** (§9) |
 
-**변경 이력:** 2026-11-19 ADR-002(Inertia)·ADR-003(소셜 로그인 전용) 결정에 따라 §2 인증, §5 오류 코드, §6 요청 제한, §7.1 인증 엔드포인트, §8을 수정했다.
+**변경 이력:**
+- 2026-11-19 ADR-002(Inertia)·ADR-003(소셜 로그인 전용) 결정에 따라 §2 인증, §5 오류 코드, §6 요청 제한, §7.1 인증 엔드포인트, §8을 수정했다.
+- 2026-11-20 공통 응답 형식을 구현하면서 §4에 400·405를, §5에 `METHOD_NOT_ALLOWED`·`BAD_REQUEST`를 추가했다. 프레임워크가 내는 모든 오류에도 `code`가 있어야 앱이 분기할 수 있기 때문이다. §9에 문서 주소를 적었다.

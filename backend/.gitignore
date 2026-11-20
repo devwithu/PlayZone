@@ -43,3 +43,6 @@ yarn-error.log
 /boost.json
 /opencode.json
 /opencode.jsonc
+
+# scramble:export 결과 (코드에서 다시 생성)
+/api.json
