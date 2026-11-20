@@ -10,15 +10,21 @@ use App\Http\Resources\Api\V1\TaxonomyResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Genre;
 use App\Models\Platform;
+use App\Models\User;
+use App\Services\FavoriteService;
 use App\Services\GameService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * 게임 (api-spec §7.2). 로그인 없이 호출할 수 있고, 공개 게임만 보인다.
  */
 class GameController extends Controller
 {
-    public function __construct(private readonly GameService $games) {}
+    public function __construct(
+        private readonly GameService $games,
+        private readonly FavoriteService $favorites,
+    ) {}
 
     /**
      * 게임 목록·검색
@@ -42,11 +48,16 @@ class GameController extends Controller
     /**
      * 게임 상세
      *
-     * 기본 정보, 이미지, 플랫폼별 출시일, 리뷰 수·평균. 없거나 공개되지 않은 게임은 `404 NOT_FOUND`.
+     * 기본 정보, 이미지, 플랫폼별 출시일, 리뷰 수·평균. Bearer 토큰을 보내면 `is_favorite`, `release_alert`를 채운다(비회원은 null). 없거나 공개되지 않은 게임은 `404 NOT_FOUND`.
      */
-    public function show(int $game): JsonResponse
+    public function show(Request $request, int $game): JsonResponse
     {
-        return ApiResponse::success(new GameDetailResource($this->games->findPublished($game)));
+        $detail = $this->games->findPublished($game);
+        // 공개 API라 인증 미들웨어가 없다. 토큰을 보냈으면 그 회원의 관심·출시 알림 상태를 채운다
+        /** @var User|null $user */
+        $user = $request->user('sanctum');
+
+        return ApiResponse::success((new GameDetailResource($detail))->forViewer($this->favorites->stateFor($user, $detail)));
     }
 
     /**

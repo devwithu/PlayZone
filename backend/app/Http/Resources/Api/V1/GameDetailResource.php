@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Data\FavoriteState;
 use App\Enums\GameImageType;
 use App\Enums\ReleaseStatus;
 use App\Models\Game;
@@ -13,12 +14,14 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * 게임 상세 (api-spec §7.2 GET /games/{id}).
  *
- * 세부 항목 평균은 리뷰(3단계), 내 리뷰 ID·관심 여부·출시 알림은 관심 게임 작업에서 추가한다.
+ * 세부 항목 평균과 내 리뷰 ID는 리뷰(3단계)에서 추가한다.
  *
  * @mixin Game
  */
 class GameDetailResource extends JsonResource
 {
+    private ?FavoriteState $viewer = null;
+
     /**
      * @return array<string, mixed>
      */
@@ -59,7 +62,21 @@ class GameDetailResource extends JsonResource
             'review_count' => $this->review_count,
             /** 종합 점수 평균 (소수 첫째 자리). 리뷰 3개 미만이면 null */
             'rating_avg' => $this->rating_avg,
-            'favorite_count' => $this->favorite_count,
+            'favorite_count' => $this->viewer->favoriteCount ?? $this->favorite_count,
+            /** 내 관심 게임인지. 비회원이면 null */
+            'is_favorite' => $this->viewer?->isFavorite,
+            /** 내 출시 알림이 켜져 있는지. 비회원이면 null */
+            'release_alert' => $this->viewer?->releaseAlert,
         ];
+    }
+
+    /**
+     * 로그인 회원의 관심·출시 알림 상태를 함께 준다 (REQ-106). 비회원이면 null.
+     */
+    public function forViewer(?FavoriteState $state): static
+    {
+        $this->viewer = $state;
+
+        return $this;
     }
 }

@@ -79,6 +79,14 @@ class User extends Authenticatable implements FilamentUser, HasName
     }
 
     /**
+     * @return HasMany<FavoriteGame, $this>
+     */
+    public function favoriteGames(): HasMany
+    {
+        return $this->hasMany(FavoriteGame::class);
+    }
+
+    /**
      * @return BelongsToMany<Role, $this>
      */
     public function roles(): BelongsToMany

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SignupController;
 use App\Http\Controllers\Auth\SocialLoginController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\ReleaseController;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +39,13 @@ Route::middleware(['auth', 'signup.pending'])->prefix('signup')->name('signup.')
 
 Route::middleware(['auth', 'signup.completed'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+
+    // 관심 게임·출시 알림 (REQ-604, REQ-204)
+    Route::get('mypage/favorites', [FavoriteController::class, 'index'])->name('mypage.favorites');
+    Route::post('games/{game}/favorite', [FavoriteController::class, 'store'])->whereNumber('game')->name('games.favorite.store');
+    Route::delete('games/{game}/favorite', [FavoriteController::class, 'destroy'])->whereNumber('game')->name('games.favorite.destroy');
+    Route::post('games/{game}/release-alert', [FavoriteController::class, 'enableReleaseAlert'])->whereNumber('game')->name('games.release-alert.store');
+    Route::delete('games/{game}/release-alert', [FavoriteController::class, 'disableReleaseAlert'])->whereNumber('game')->name('games.release-alert.destroy');
 });
 
 require __DIR__.'/settings.php';

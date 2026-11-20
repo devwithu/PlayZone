@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  *
  * - 30일 재가입 제한: 소셜 계정 식별자의 해시를 남긴다
  * - 익명화: 이메일 삭제, 닉네임 withdrawn_{id}. users 행은 리뷰·원장 FK 때문에 남긴다
- * - 소셜 계정·역할 삭제, 모든 앱 토큰과 웹 세션 폐기
+ * - 소셜 계정·역할·관심 게임 삭제(관심 수 집계도 줄임), 모든 앱 토큰과 웹 세션 폐기
  * - Apple 토큰 폐기는 커밋 뒤 큐 작업으로 (실패해도 탈퇴는 유지)
  *
  * Google은 저장해 둔 Google 토큰이 없어 폐기 호출을 하지 않는다 (ADR-003 §5).
@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\DB;
 class WithdrawalService
 {
     public const REJOIN_RESTRICTION_DAYS = 30;
+
+    public function __construct(private readonly FavoriteService $favorites) {}
 
     public function withdraw(User $user): void
     {
@@ -48,6 +50,7 @@ class WithdrawalService
 
             $user->socialAccounts()->delete();
             $user->roles()->detach();
+            $this->favorites->removeAllFor($user);
             $user->tokens()->delete();
             $this->deleteWebSessions($user);
 

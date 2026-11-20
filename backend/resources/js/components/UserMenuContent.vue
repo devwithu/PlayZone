@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, Settings } from '@lucide/vue';
+import { Heart, LogOut, Settings } from '@lucide/vue';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
 import { logout } from '@/routes';
+import { favorites } from '@/routes/mypage';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 
@@ -31,6 +32,12 @@ defineProps<Props>();
     </DropdownMenuLabel>
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
+        <DropdownMenuItem :as-child="true">
+            <Link class="block w-full cursor-pointer" :href="favorites()">
+                <Heart class="mr-2 h-4 w-4" />
+                관심 게임
+            </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem :as-child="true">
             <Link class="block w-full cursor-pointer" :href="edit()" prefetch>
                 <Settings class="mr-2 h-4 w-4" />

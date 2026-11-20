@@ -46,6 +46,17 @@ export type GameDetail = Omit<GameListItem, 'primary_release'> & {
     banner_url: string | null;
     release_dates: ReleaseDate[];
     favorite_count: number;
+    /** 로그인 회원의 관심 게임 여부. 비회원이면 null */
+    is_favorite: boolean | null;
+    /** 로그인 회원의 출시 알림 여부. 비회원이면 null */
+    release_alert: boolean | null;
+};
+
+/** 내 관심 게임 한 줄 (api-spec §7.7) */
+export type FavoriteGame = {
+    game: GameListItem;
+    release_alert: boolean;
+    favorited_at: string;
 };
 
 export const releaseStatusLabels: Record<ReleaseStatus, string> = {

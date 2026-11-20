@@ -65,7 +65,7 @@
 - [x] 게임 API (2026-11-21): `GET /api/v1/games`(검색·필터·정렬), `/games/{id}`, `/genres`, `/platforms`. 세부 평균·점수 분포는 3단계
 - [x] 게임 목록·상세 웹 화면 (2026-11-21): `/games`(검색·장르·플랫폼·출시 여부 필터, 정렬, 24개씩), `/games/{slug}`(출시일·스크린샷·소개, OG 메타). 점수 분포·리뷰 목록은 3단계, 관심 게임·출시 알림 버튼은 6번 작업
 - [x] 출시 일정 (2026-11-21): API `GET /api/v1/releases`(기간·플랫폼), `/releases/upcoming`, `/games/{id}/releases`, 웹 `/releases`(월 이동, 플랫폼 필터, 날짜별·월 중·분기 단위 묶음). 달력 보기는 나중에
-- 관심 게임, 출시 알림 켜기·끄기
+- [x] 관심 게임·출시 알림 (2026-11-21): `favorite_games` 테이블, API(등록·해제, 알림 켜기·끄기, `GET /mypage/favorites`, 상세의 `is_favorite`·`release_alert`), 웹 게임 상세·출시 일정의 버튼과 `/mypage/favorites`. 실제 알림 발송은 4단계
 
 **완료 기준:** 관리자가 등록한 게임을 웹과 API에서 검색하고 조회할 수 있다.
 

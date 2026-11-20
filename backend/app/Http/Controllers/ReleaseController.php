@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\ReleaseScheduleEntry;
 use App\Http\Requests\Api\V1\ReleaseScheduleRequest;
 use App\Http\Resources\Api\V1\ReleaseScheduleResource;
 use App\Http\Resources\Api\V1\TaxonomyResource;
 use App\Models\Platform;
+use App\Models\User;
+use App\Services\FavoriteService;
 use App\Services\ReleaseService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -13,12 +16,15 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * 웹 출시 일정 (화면 설계 W-08). 월 단위로 보고 플랫폼 하나로 거른다.
+ * 웹 출시 일정 (화면 설계 W-08). 월 단위로 보고 플랫폼 하나로 거른다. 로그인 회원은 🔔로 출시 알림을 켠다.
  * 주소창에서 잘못 바뀐 값(month, platform)은 오류 대신 이번 달·전체 플랫폼으로 보여 준다.
  */
 class ReleaseController extends Controller
 {
-    public function __construct(private readonly ReleaseService $releases) {}
+    public function __construct(
+        private readonly ReleaseService $releases,
+        private readonly FavoriteService $favorites,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -32,7 +38,15 @@ class ReleaseController extends Controller
             $platform === '' ? [] : [$platform],
         );
 
+        /** @var User|null $user */
+        $user = $request->user();
+
         return Inertia::render('releases/Index', [
+            // 🔔 상태: 게임 ID => 알림 켜짐. 비회원이면 null
+            'alerts' => $user === null ? null : (object) $this->favorites->releaseAlerts(
+                $user,
+                array_values(array_unique($entries->map(fn (ReleaseScheduleEntry $entry): int => $entry->game->id)->all())),
+            ),
             'month' => $month->format('Y-m'),
             'prevMonth' => $month->subMonth()->format('Y-m'),
             'nextMonth' => $month->addMonth()->format('Y-m'),

@@ -8,7 +8,7 @@ import { index } from '@/routes/releases';
 import type { ReleaseScheduleEntry, Taxonomy } from '@/types/game';
 
 // W-08 출시 일정 (목록 보기). 일 단위는 날짜별, 월 단위는 "N월 중", 분기·연 단위는 아래에 따로 묶는다 (REQ-203)
-// 출시 알림 버튼은 관심 게임 작업에서 붙인다
+// 🔔는 출시 알림 토글 (REQ-204). 비회원이 누르면 로그인 화면으로 간다
 const props = defineProps<{
     month: string;
     prevMonth: string;
@@ -17,6 +17,8 @@ const props = defineProps<{
     platform: string;
     entries: ReleaseScheduleEntry[];
     platforms: Taxonomy[];
+    /** 게임 ID => 내 출시 알림. 비회원이면 null */
+    alerts: Record<string, boolean> | null;
 }>();
 
 const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
@@ -156,7 +158,7 @@ function changePlatform(platform: string) {
                         v-for="entry in group.items"
                         :key="`${entry.game.id}-${entry.release_status}`"
                     >
-                        <ReleaseRow :entry="entry" />
+                        <ReleaseRow :entry="entry" :alerts="alerts" />
                     </li>
                 </ul>
             </div>
@@ -170,7 +172,7 @@ function changePlatform(platform: string) {
                 </p>
                 <ul class="flex-1 space-y-3">
                     <li v-for="entry in monthEntries" :key="entry.game.id">
-                        <ReleaseRow :entry="entry" />
+                        <ReleaseRow :entry="entry" :alerts="alerts" />
                     </li>
                 </ul>
             </div>
@@ -187,7 +189,7 @@ function changePlatform(platform: string) {
                     <span class="w-24 shrink-0 text-sm text-muted-foreground">
                         {{ entry.display_date }}
                     </span>
-                    <ReleaseRow :entry="entry" />
+                    <ReleaseRow :entry="entry" :alerts="alerts" />
                 </li>
             </ul>
         </section>

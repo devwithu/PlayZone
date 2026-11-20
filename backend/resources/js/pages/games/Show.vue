@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { Heart } from '@lucide/vue';
+import ReleaseAlertButton from '@/components/games/ReleaseAlertButton.vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useFavoriteActions } from '@/composables/useFavoriteActions';
 import { index } from '@/routes/games';
 import { releaseStatusLabels } from '@/types/game';
 import type { GameDetail } from '@/types/game';
 
 // W-05 게임 상세. 첫 HTML(SSR)에 제목·설명·OG 이미지 메타 태그가 들어간다 (WEB-003)
-// 점수 분포·세부 평가·리뷰 목록은 3단계, 관심 게임·출시 알림은 관심 게임 작업에서 붙인다
+// 점수 분포·세부 평가·리뷰 목록은 3단계에서 붙인다
 const props = defineProps<{
     game: GameDetail;
     meta: { description: string; image: string | null; url: string };
@@ -20,6 +24,19 @@ const credits = computed(() =>
     ]
         .filter(Boolean)
         .join(' / '),
+);
+
+const { toggleFavorite } = useFavoriteActions();
+
+/** 아직 나오지 않은 플랫폼이 있을 때만 출시 알림 버튼을 보여 준다 (출시일이 하나도 없으면 미정으로 본다) */
+const hasUpcomingRelease = computed(
+    () =>
+        props.game.release_dates.length === 0 ||
+        props.game.release_dates.some(
+            (r) =>
+                r.release_status !== 'released' &&
+                r.release_status !== 'cancelled',
+        ),
 );
 </script>
 
@@ -99,6 +116,30 @@ const credits = computed(() =>
                     <span v-else class="text-sm text-muted-foreground">
                         평가 부족 (리뷰 {{ game.review_count }}개)
                     </span>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <Button
+                        type="button"
+                        :variant="game.is_favorite ? 'default' : 'outline'"
+                        :aria-pressed="game.is_favorite === true"
+                        data-test="favorite-toggle"
+                        @click="toggleFavorite(game.id, game.is_favorite)"
+                    >
+                        <Heart
+                            class="size-4"
+                            :class="game.is_favorite ? 'fill-current' : ''"
+                        />
+                        관심 게임
+                        <span class="text-xs opacity-80">
+                            {{ game.favorite_count.toLocaleString() }}
+                        </span>
+                    </Button>
+                    <ReleaseAlertButton
+                        v-if="hasUpcomingRelease"
+                        :game-id="game.id"
+                        :active="game.release_alert"
+                    />
                 </div>
 
                 <p

@@ -8,6 +8,8 @@ use App\Http\Resources\Api\V1\GameListResource;
 use App\Http\Resources\Api\V1\TaxonomyResource;
 use App\Models\Genre;
 use App\Models\Platform;
+use App\Models\User;
+use App\Services\FavoriteService;
 use App\Services\GameService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -21,7 +23,10 @@ use Inertia\Response;
  */
 class GameController extends Controller
 {
-    public function __construct(private readonly GameService $games) {}
+    public function __construct(
+        private readonly GameService $games,
+        private readonly FavoriteService $favorites,
+    ) {}
 
     public function index(GameBrowseRequest $request): Response
     {
@@ -59,7 +64,9 @@ class GameController extends Controller
     public function show(Request $request, string $slug): Response
     {
         $game = $this->games->findPublishedBySlug($slug);
-        $detail = $this->props(new GameDetailResource($game), $request);
+        /** @var User|null $user */
+        $user = $request->user();
+        $detail = $this->props((new GameDetailResource($game))->forViewer($this->favorites->stateFor($user, $game)), $request);
 
         return Inertia::render('games/Show', [
             'game' => $detail,

@@ -257,7 +257,8 @@
 - 상세: 목록 항목에 더해 `description`, `developer`, `publisher`, `screenshot_urls`, `banner_url`, `favorite_count`, `release_dates`(`{platform, release_date, date_precision, release_status, display_date}`, 출시일 순, 미정은 뒤로).
 - 출시일 `release_date`는 KST 날짜 `YYYY-MM-DD`다. 월·분기·연 단위는 그 기간의 첫날이므로, 앱은 `display_date`(예: `2027년 2분기`, `미정`)를 그대로 보여 준다.
 - `/genres`, `/platforms`는 페이지 없이 관리자가 정한 순서의 전체 목록(`data` 배열)을 준다.
-- 아직 없는 것: 세부 항목 평균, `/games/{id}/rating-summary`, `/rating-categories`는 리뷰(3단계)에서, `my_review_id`·`is_favorite`·`release_alert`는 관심 게임 작업에서 추가한다.
+- 상세의 `is_favorite`, `release_alert`: 인증이 필요 없는 API지만 Bearer 토큰을 보내면 그 회원 기준으로 채운다. 토큰이 없으면 `null`이다. 이때 `favorite_count`도 최신 값이다.
+- 아직 없는 것: 세부 항목 평균, `my_review_id`, `/games/{id}/rating-summary`, `/rating-categories`는 리뷰(3단계)에서 추가한다.
 
 ### 7.3 리뷰
 
@@ -319,7 +320,7 @@
 - 정렬은 기간이 끝나는 날 순이다. 그래서 "12월 중"은 12월의 날짜별 출시 뒤에 온다. 끝나는 날이 같으면 일 → 월 → 분기 → 연 단위, 그다음 제목 순이다.
 - `platform`은 slug를 쉼표로 여러 개 줄 수 있다. 항목의 `platforms`에는 고른 플랫폼만 들어간다.
 - `GET /games/{id}/releases`: 게임 상세의 `release_dates`와 같다. 취소된 플랫폼도 상태와 함께 준다.
-- 출시 알림 켜기·끄기는 관심 게임(`favorite_games`) 작업에서 추가한다.
+- 출시 알림 켜기·끄기는 §7.7 구현 메모를 따른다.
 
 ### 7.5 커뮤니티
 
@@ -383,6 +384,15 @@
 | GET | /notifications | 알림 목록 (`unread_only`) | O |
 | PUT | /notifications/{id}/read | 읽음 처리 | O |
 | **PUT** | **/notifications/read-all** | 모두 읽음 | O |
+
+**관심 게임·출시 알림 구현 메모 (2026-11-21)**
+
+- `POST/DELETE /games/{id}/favorite`, `POST/DELETE /games/{id}/release-alerts`는 모두 멱등이다. 이미 그 상태여도 성공하고, 결과 상태 `{is_favorite, release_alert, favorite_count}`를 `data`로 준다.
+- 새로 관심 게임에 등록하면 출시 알림이 켜진다(ERD 기본값). 해제하면 알림도 함께 사라진다. 알림 끄기는 관심 게임이 아니면 아무것도 하지 않는다.
+- 등록·알림 켜기는 공개 게임만 된다(아니면 `404 NOT_FOUND`). 해제·알림 끄기는 숨겨진 게임에도 된다.
+- `games.favorite_count`는 등록·해제와 같은 트랜잭션에서 실제로 추가·삭제된 행 수만큼만 바뀐다. 동시 요청은 UNIQUE `(user_id, game_id)`가 막는다.
+- `GET /mypage/favorites`: 최근 등록 순, 페이지 단위. 항목은 `{game(게임 목록 항목과 같은 모양), release_alert, favorited_at}`이다. 공개되지 않은 게임은 목록에서 빠지지만 등록은 남는다.
+- 탈퇴하면 관심 게임을 지우고 각 게임의 `favorite_count`를 줄인다.
 
 ### 7.8 이벤트·공지 (설계서에 없던 영역)
 
