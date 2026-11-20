@@ -51,7 +51,7 @@
 - [x] 앱 인증 API: 가입 완료, 닉네임 확인, 내 정보, 로그아웃 (2026-11-20, api-spec §7.1. 등급·제재·가입 포인트는 3단계)
 - [x] 회원 탈퇴 (2026-11-20): 웹 설정 화면·앱 `DELETE /api/v1/auth/me`, 익명화, 30일 재가입 제한, 토큰·세션 폐기, Apple 토큰 폐기(큐). 포인트 소멸은 3단계
 - [x] 계정 연결 (2026-11-20): 웹 설정 > 로그인 연결, 앱 `POST/DELETE /api/v1/auth/social-accounts/{provider}`. 웹 Apple 로그인 nonce 처리 수정 포함. 실제 키로는 미확인
-- Filament 설치, 회원 관리 화면
+- [x] Filament 설치, 회원 관리 화면 (2026-11-20): `/admin`, 웹 로그인 + 관리 역할로 접근, 회원 목록·검색·상세, 최고 관리자의 관리 역할 변경. 첫 관리자는 `php artisan user:role`로 지정. 제재·포인트 수동 지급·관리자 로그(`admin_logs`)는 3단계
 - [x] 공통 API 응답 형식 (2026-11-20): `/api/v1` 라우트, Sanctum(토큰 60일), 성공·목록·오류 응답, 오류 코드 enum, 기본 요청 제한, Scramble OpenAPI(`/docs/api`). 규칙은 `docs/04-development/coding-conventions.md` §1
 - [x] GitHub Actions CI (2026-11-20): `.github/workflows/tests.yml`, `backend/` 변경 시 PostgreSQL 18 서비스로 `composer ci:check` 실행
 - 개발 환경 문서: `docs/04-development/environment-setup.md`

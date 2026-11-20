@@ -5,6 +5,9 @@ namespace App\Models;
 use App\Enums\UserStatus;
 use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasName;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -34,7 +37,7 @@ use Laravel\Sanctum\HasApiTokens;
  */
 #[Fillable(['email', 'email_verified_at', 'nickname'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser, HasName
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
@@ -86,6 +89,19 @@ class User extends Authenticatable
     public function hasRole(string ...$slugs): bool
     {
         return $this->roles->whereIn('slug', $slugs)->isNotEmpty();
+    }
+
+    /**
+     * 관리자 화면은 별도 로그인 없이, 웹에서 로그인한 정상 회원 중 관리 역할이 있으면 들어올 수 있다 (ADR-003 §6).
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->isActive() && $this->hasRole(...Role::PANEL_ROLES);
+    }
+
+    public function getFilamentName(): string
+    {
+        return $this->nickname ?? "회원 #{$this->id}";
     }
 
     public function isPending(): bool

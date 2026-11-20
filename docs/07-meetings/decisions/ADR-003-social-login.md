@@ -55,6 +55,7 @@
 
 - Filament 관리자도 같은 회원 계정(Google·Apple)으로 로그인하고, `roles`로 권한을 확인한다.
 - 관리자 화면은 별도 로그인 화면 없이, 웹에서 로그인한 상태에서 관리자 역할이 있으면 접근을 허용한다.
+- **2026-11-20 구현 메모:** Filament 패널의 자체 로그인 화면을 끄고, 로그인하지 않았으면 웹 로그인(`/login`)으로 보낸다. 접근 조건은 정상(`active`) 회원이면서 `moderator`·`admin`·`super_admin` 중 하나의 역할이 있는 것이다(`User::canAccessPanel`). 관리 역할은 `super_admin`만 관리자 화면에서 바꿀 수 있고, 자기 자신의 `super_admin`은 해제할 수 없다. 첫 관리자는 서버에서 `php artisan user:role {회원 ID 또는 이메일} super_admin`으로 지정한다.
 - 설계서 §9의 "관리자 2단계 인증 검토"는 Google·Apple 계정 자체의 2단계 인증으로 대신한다. 관리자 계정은 2단계 인증을 켠 Google 계정만 쓰도록 운영 규칙으로 정한다.
 
 ## 7. 결정 사항
