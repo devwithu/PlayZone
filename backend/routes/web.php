@@ -3,9 +3,14 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SignupController;
 use App\Http\Controllers\Auth\SocialLoginController;
+use App\Http\Controllers\GameController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
+
+// 게임 (W-04, W-05). 로그인 없이 보고 SSR로 검색엔진에 노출된다. 상세 주소는 한글 slug도 쓴다
+Route::get('games', [GameController::class, 'index'])->name('games.index');
+Route::get('games/{slug}', [GameController::class, 'show'])->where('slug', '[^/]+')->name('games.show');
 
 // 로그인 (Google·Apple 전용, ADR-003)
 Route::middleware('guest')->group(function () {

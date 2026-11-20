@@ -69,6 +69,18 @@ class GameService
     }
 
     /**
+     * 웹 상세 주소(/games/{slug})용. 없거나 공개되지 않았으면 404.
+     */
+    public function findPublishedBySlug(string $slug): Game
+    {
+        return Game::query()
+            ->published()
+            ->with(['genres', 'platforms', 'images', 'releaseDates.platform'])
+            ->where('slug', $slug)
+            ->firstOrFail();
+    }
+
+    /**
      * @param  Builder<Game>  $query
      */
     private function applySort(Builder $query, GameSort $sort): void
