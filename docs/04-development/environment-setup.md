@@ -38,6 +38,8 @@ docker compose ps        # STATUS가 healthy인지 확인
 
 2026-11-19 기준 맥북: PHP 8.5.12, Composer 2.11.1, Node 26.13.0, Docker 29.9.2 확인 완료.
 
+2026-11-20 기준 회사 Windows(WSL2 Ubuntu 26.04): PHP 8.5.4, Composer 2.11.2, Node 26.13.1, Docker 29.8.2에서 `composer test` 통과 확인.
+
 ## 4. Windows (회사)
 
 Windows에서는 **WSL2(Ubuntu) 안에서 개발**한다. Laravel 공식 도구와 운영 서버(Linux)와 환경이 같고, 파일 감시(Vite)와 Composer가 훨씬 빠르다.
@@ -48,17 +50,29 @@ Windows에서는 **WSL2(Ubuntu) 안에서 개발**한다. Laravel 공식 도구�
 2. **Docker Desktop 설치** → Settings → Resources → WSL Integration에서 Ubuntu 켜기
 3. **Ubuntu 안에서 PHP·Composer·Node 설치**
    ```bash
-   sudo add-apt-repository ppa:ondrej/php -y && sudo apt update
+   # Ubuntu 26.04는 기본 저장소에 PHP 8.5가 있다. 24.04 이하만 먼저 PPA 추가:
+   #   sudo add-apt-repository ppa:ondrej/php -y
+   sudo apt update
    sudo apt install -y php8.5-cli php8.5-pgsql php8.5-intl php8.5-mbstring \
      php8.5-gd php8.5-zip php8.5-bcmath php8.5-curl php8.5-xml unzip
-   # Composer: https://getcomposer.org/download/ 안내대로 설치
-   # Node: fnm 또는 nvm으로 설치하면 .node-version(26)을 따른다
+
+   # Composer: sudo 없이 ~/.local/bin에 설치 (Ubuntu는 로그인 시 이 경로를 PATH에 넣는다)
+   mkdir -p ~/.local/bin
+   php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+   php composer-setup.php --install-dir="$HOME/.local/bin" --filename=composer && rm composer-setup.php
+
+   # Node: fnm으로 설치하면 .node-version(26)을 따른다
+   curl -fsSL https://fnm.vercel.app/install | bash   # 설치 후 터미널 다시 열기
+   fnm install 26 && fnm default 26
    ```
+   Ubuntu 비밀번호를 잊었으면 PowerShell에서 `wsl -u root`로 root 셸에 들어가 `passwd <사용자명>`으로 다시 정한다(`wsl -u root -- apt ...`처럼 sudo 없이 바로 설치해도 된다).
 4. **Git 설정** (Ubuntu 안에서)
    ```bash
    git config --global core.autocrlf input
-   git config --global user.name "..."
-   git config --global user.email "..."
+   git config --global user.name "devwithu"
+   git config --global user.email "devwithu@naver.com"
+   # GitHub 로그인은 Windows Git의 자격 증명 관리자를 함께 쓴다
+   git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
    ```
 5. **저장소를 WSL 파일 시스템에 clone한다.**
    ```bash
