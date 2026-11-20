@@ -31,8 +31,15 @@ class SocialLoginController extends Controller
         private readonly SocialAccountLinkService $linkService,
     ) {}
 
-    public function redirect(LoginProvider $provider): SymfonyRedirectResponse
+    public function redirect(Request $request, LoginProvider $provider): SymfonyRedirectResponse
     {
+        // 콜백은 APP_URL 주소로 돌아온다. 다른 주소(예: 127.0.0.1 ↔ localhost, www 유무)에서 시작하면
+        // 세션 쿠키가 콜백에 오지 않아 state 검증이 실패하므로, 먼저 APP_URL 주소로 옮겨서 시작한다.
+        $appOrigin = rtrim((string) config('app.url'), '/');
+        if ($appOrigin !== '' && $request->getSchemeAndHttpHost() !== $appOrigin) {
+            return redirect()->away($appOrigin.$request->getRequestUri());
+        }
+
         return $this->drivers->forLogin($provider)->redirect();
     }
 
@@ -47,7 +54,7 @@ class SocialLoginController extends Controller
             /** @var SocialiteUser&OAuthUser $socialUser */
             $socialUser = $this->drivers->forLogin($provider)->user();
         } catch (Throwable $e) {
-            Log::warning('Social login callback failed', ['provider' => $provider->value, 'error' => $e->getMessage()]);
+            Log::warning('Social login callback failed', ['provider' => $provider->value, 'exception' => $e::class, 'error' => $e->getMessage()]);
 
             return to_route('login')->with('loginError', '로그인하지 못했습니다. 다시 시도해 주세요.');
         }
@@ -98,7 +105,7 @@ class SocialLoginController extends Controller
             /** @var SocialiteUser&OAuthUser $socialUser */
             $socialUser = $this->drivers->forLinking($provider)->user();
         } catch (Throwable $e) {
-            Log::warning('Social link callback failed', ['provider' => $provider->value, 'error' => $e->getMessage()]);
+            Log::warning('Social link callback failed', ['provider' => $provider->value, 'exception' => $e::class, 'error' => $e->getMessage()]);
 
             return SocialAccountController::backWithMessage('error', '계정을 연결하지 못했습니다. 다시 시도해 주세요.');
         }

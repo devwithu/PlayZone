@@ -50,6 +50,20 @@ class SocialLoginTest extends TestCase
         $this->get(route('social.redirect', 'google'))->assertRedirect();
     }
 
+    public function test_redirect_from_other_host_moves_to_app_url_first(): void
+    {
+        // 127.0.0.1에서 시작하면 localhost로 돌아오는 콜백에 세션 쿠키가 없어 state 검증이 실패한다
+        config(['app.url' => 'http://localhost:8000']);
+        Socialite::fake('google');
+
+        $this->get('http://127.0.0.1:8000/auth/google/redirect')
+            ->assertRedirect('http://localhost:8000/auth/google/redirect');
+
+        // APP_URL 주소에서 시작하면 바로 제공자로 보낸다
+        $location = (string) $this->get('http://localhost:8000/auth/google/redirect')->headers->get('Location');
+        $this->assertStringStartsNotWith('http://localhost:8000/', $location);
+    }
+
     public function test_unknown_provider_returns_404(): void
     {
         $this->get('/auth/kakao/redirect')->assertNotFound();
