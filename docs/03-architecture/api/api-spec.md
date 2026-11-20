@@ -246,6 +246,19 @@
 
 로그인 상태면 상세 응답에 `my_review_id`, `is_favorite`, `release_alert`를 채운다.
 
+**구현 메모 (2026-11-21)**
+
+- 공개(`published`) 게임만 보인다. 작성 중·숨김 게임과 없는 ID는 `404 NOT_FOUND`.
+- `q`는 제목 중간 일치(`ILIKE`)다. `%`, `_`는 글자 그대로 찾는다. 1자는 `422 VALIDATION_FAILED`.
+- `genre`, `platform`은 쉼표로 여러 개를 주면 **하나라도 해당하는** 게임을 찾는다. 장르와 플랫폼을 함께 주면 둘 다 만족해야 한다. 없는 slug는 결과가 비어 있을 뿐 오류가 아니다.
+- `release_status=released`: 한 플랫폼이라도 출시됨(= 리뷰 가능). `upcoming`: 어느 플랫폼에도 출시되지 않았고 취소되지 않은 출시 계획(미정 포함)이 있음.
+- `sort=rating`은 평균이 없는(리뷰 3개 미만) 게임을, `latest_release`는 출시되지 않은 게임을 뒤로 보낸다. 같은 값이면 최신 등록 순(`title`은 ID 순)이다.
+- 목록 항목: `id`, `title`, `slug`(웹 주소), `cover_url`, `genres`·`platforms`(`{id, name, slug}`), `review_count`, `rating_avg`, `is_reviewable`, `primary_release`(`{release_date, release_status, display_date}`: 출시됐으면 가장 이른 출시일, 아니면 가장 가까운 예정일, 계획이 없으면 `null`).
+- 상세: 목록 항목에 더해 `description`, `developer`, `publisher`, `screenshot_urls`, `banner_url`, `favorite_count`, `release_dates`(`{platform, release_date, date_precision, release_status, display_date}`, 출시일 순, 미정은 뒤로).
+- 출시일 `release_date`는 KST 날짜 `YYYY-MM-DD`다. 월·분기·연 단위는 그 기간의 첫날이므로, 앱은 `display_date`(예: `2027년 2분기`, `미정`)를 그대로 보여 준다.
+- `/genres`, `/platforms`는 페이지 없이 관리자가 정한 순서의 전체 목록(`data` 배열)을 준다.
+- 아직 없는 것: 세부 항목 평균, `/games/{id}/rating-summary`, `/rating-categories`는 리뷰(3단계)에서, `my_review_id`·`is_favorite`·`release_alert`는 관심 게임 작업에서 추가한다.
+
 ### 7.3 리뷰
 
 | Method | URL | 기능 | 인증 |

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Auth\AccountController;
 use App\Http\Controllers\Api\V1\Auth\SocialAccountController;
 use App\Http\Controllers\Api\V1\Auth\SocialLoginController;
+use App\Http\Controllers\Api\V1\GameController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -38,4 +39,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
                 ->name('social-accounts.destroy');
         });
     });
+
+    // 게임 (§7.2) -: 로그인 없이 호출
+    Route::get('games', [GameController::class, 'index'])->name('games.index');
+    Route::get('games/{game}', [GameController::class, 'show'])->whereNumber('game')->name('games.show');
+    Route::get('genres', [GameController::class, 'genres'])->name('genres.index');
+    Route::get('platforms', [GameController::class, 'platforms'])->name('platforms.index');
 });

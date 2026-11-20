@@ -138,6 +138,38 @@ class Game extends Model
         $query->whereHas('releaseDates', fn (Builder $q) => $q->where('release_status', ReleaseStatus::Released));
     }
 
+    /**
+     * 출시 예정 게임: 어느 플랫폼에도 출시되지 않았고, 취소되지 않은 출시 계획이 있다
+     *
+     * @param  Builder<Game>  $query
+     */
+    #[Scope]
+    protected function upcoming(Builder $query): void
+    {
+        $query->whereDoesntHave('releaseDates', fn (Builder $q) => $q->where('release_status', ReleaseStatus::Released))
+            ->whereHas('releaseDates', fn (Builder $q) => $q->where('release_status', '!=', ReleaseStatus::Cancelled));
+    }
+
+    /**
+     * 목록·카드에 보여 줄 대표 출시일 (releaseDates를 미리 불러 두고 쓴다).
+     * 출시됐으면 가장 이른 출시일, 아니면 취소되지 않은 계획 중 가장 가까운 날(미정은 뒤로).
+     */
+    public function primaryRelease(): ?GameReleaseDate
+    {
+        $released = $this->releaseDates
+            ->filter(fn (GameReleaseDate $r) => $r->release_status === ReleaseStatus::Released)
+            ->sortBy(fn (GameReleaseDate $r) => $r->release_date?->toDateString());
+
+        if ($released->isNotEmpty()) {
+            return $released->first();
+        }
+
+        return $this->releaseDates
+            ->filter(fn (GameReleaseDate $r) => $r->release_status !== ReleaseStatus::Cancelled)
+            ->sortBy(fn (GameReleaseDate $r) => $r->release_date?->toDateString() ?? '9999-12-31')
+            ->first();
+    }
+
     public function isPublished(): bool
     {
         return $this->status === GameStatus::Published;
