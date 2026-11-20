@@ -19,13 +19,16 @@ use Illuminate\Support\Facades\DB;
  * - Apple 토큰 폐기는 커밋 뒤 큐 작업으로 (실패해도 탈퇴는 유지)
  *
  * Google은 저장해 둔 Google 토큰이 없어 폐기 호출을 하지 않는다 (ADR-003 §5).
- * 포인트 잔액 소멸(withdraw_expire 원장, 포인트 정책 §10)은 3단계에서 PointService를 만들 때 여기서 처리한다.
+ * 포인트 잔액은 소멸 거래(withdraw_expire, 포인트 정책 §10-6)로 0이 되고, 기존 원장은 남는다.
  */
 class WithdrawalService
 {
     public const REJOIN_RESTRICTION_DAYS = 30;
 
-    public function __construct(private readonly FavoriteService $favorites) {}
+    public function __construct(
+        private readonly FavoriteService $favorites,
+        private readonly PointService $points,
+    ) {}
 
     public function withdraw(User $user): void
     {
@@ -51,6 +54,7 @@ class WithdrawalService
             $user->socialAccounts()->delete();
             $user->roles()->detach();
             $this->favorites->removeAllFor($user);
+            $this->points->expireOnWithdraw($user);
             $user->tokens()->delete();
             $this->deleteWebSessions($user);
 

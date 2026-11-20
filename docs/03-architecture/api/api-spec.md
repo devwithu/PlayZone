@@ -197,7 +197,7 @@
 ```
 - `age_confirmed`, `terms`, `privacy`는 `true`여야 한다. 닉네임은 2~12자 한글·영문·숫자·밑줄, 대소문자 구분 없이 중복 불가.
 - 응답 `data`는 `GET /auth/me`와 같다. 이미 가입을 마친 회원이 다시 보내면 아무것도 바꾸지 않고 현재 정보를 준다(재시도에 안전).
-- 가입 포인트(`data.point`)는 3단계에서 `PointService`를 만들 때 추가한다.
+- 가입 포인트를 지급하고 `data.point`로 알려 준다(2026-11-21). 재시도하면 `earned: 0`이다.
 
 **내 정보 응답 예시** (`GET /auth/me`)
 ```json
@@ -368,6 +368,12 @@
 }
 ```
 - 요청 본문은 없다. 날짜와 포인트는 서버가 정한다(설계서 §7.1).
+
+**포인트 구현 메모 (2026-11-21)**
+
+- `GET /points/balance`: `{point_balance, lifetime_points}`. 등급은 등급 정책이 정해지면 추가한다.
+- `GET /points/history`: 최근 거래 순, 페이지 단위. 항목은 `{id, type, type_label, amount, balance_after, description, created_at}`이다. `amount`는 적립이 양수, 차감이 음수다. `type`(포인트 정책 §3·§4 코드)으로 거른다.
+- `data.point.limited`: 일일 한도에 걸려 지급하지 않았거나(`earned: 0`), 포인트 한도의 남은 만큼만 지급했을 때 `true`다.
 
 ### 7.7 마이페이지·알림
 

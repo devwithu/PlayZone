@@ -23,11 +23,15 @@ class SignupController extends Controller
 
     public function store(CompleteSignupRequest $request, SignupService $service): RedirectResponse
     {
-        $service->complete(
+        $result = $service->complete(
             user: $request->user(),
             nickname: $request->string('nickname')->toString(),
             marketingAgreed: $request->boolean('marketing'),
         );
+
+        if ($result->point->earned > 0) {
+            Inertia::flash('toast', ['type' => 'success', 'message' => "가입을 환영합니다! {$result->point->earned}P를 받았습니다."]);
+        }
 
         return redirect()->intended(route('home'));
     }

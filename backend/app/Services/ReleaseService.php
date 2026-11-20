@@ -8,6 +8,7 @@ use App\Enums\ReleaseStatus;
 use App\Models\Game;
 use App\Models\GameReleaseDate;
 use App\Models\Platform;
+use App\Support\ServiceDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Query\Builder;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ReleaseService
 {
-    public const TIMEZONE = 'Asia/Seoul';
+    public const TIMEZONE = ServiceDate::TIMEZONE;
 
     /** 출시일 기간의 마지막 날 (일 단위면 그날) */
     private const PERIOD_END = "((rd.release_date + CASE rd.date_precision WHEN 'month' THEN interval '1 month' WHEN 'quarter' THEN interval '3 months' WHEN 'year' THEN interval '1 year' ELSE interval '1 day' END)::date - 1)";
@@ -69,7 +70,7 @@ class ReleaseService
 
     public static function today(): CarbonImmutable
     {
-        return CarbonImmutable::now(self::TIMEZONE)->startOfDay();
+        return ServiceDate::today();
     }
 
     /**

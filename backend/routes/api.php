@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\Auth\SocialAccountController;
 use App\Http\Controllers\Api\V1\Auth\SocialLoginController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\GameController;
+use App\Http\Controllers\Api\V1\PointController;
 use App\Http\Controllers\Api\V1\ReleaseController;
 use Illuminate\Support\Facades\Route;
 
@@ -60,5 +61,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::delete('games/{game}/favorite', [FavoriteController::class, 'destroy'])->whereNumber('game')->name('games.favorite.destroy');
         Route::post('games/{game}/release-alerts', [FavoriteController::class, 'enableReleaseAlert'])->whereNumber('game')->name('games.release-alerts.store');
         Route::delete('games/{game}/release-alerts', [FavoriteController::class, 'disableReleaseAlert'])->whereNumber('game')->name('games.release-alerts.destroy');
+    });
+
+    // 포인트 (§7.6) O: 가입 완료 회원만
+    Route::middleware(['auth:sanctum', 'signup.completed'])->prefix('points')->name('points.')->group(function () {
+        Route::get('balance', [PointController::class, 'balance'])->name('balance');
+        Route::get('history', [PointController::class, 'history'])->name('history');
     });
 });

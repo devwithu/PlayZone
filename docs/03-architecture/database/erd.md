@@ -383,6 +383,13 @@ erDiagram
 - 인덱스: `(user_id, created_at DESC)` (내역 조회), `(user_id, type, service_date)` (일일 한도), `(reference_type, reference_id)` (회수 대상 조회)
 - 앱 DB 계정에서 이 테이블의 UPDATE·DELETE 권한을 회수하는 것을 검토한다.
 
+**구현 메모 (2026-11-21)**
+
+- `point_policies`의 기본값은 마이그레이션이 넣는다(포인트 정책 §3 제안값). 이벤트 보상·관리자 지급처럼 금액을 그때 정하는 사유는 행이 없다. CHECK: `points > 0`, 한도는 NULL 또는 양수.
+- `point_transactions` CHECK: `amount <> 0`, `balance_after >= 0`. `users`에 `point_balance >= 0 AND lifetime_points >= 0` CHECK를 추가했다.
+- 모델(`PointTransaction`)은 수정·삭제하면 예외를 던진다. DB 권한 회수는 운영 배포 때 검토한다.
+- 회수(`revoke`)는 잔액만큼만 하고, 누적 획득 포인트도 실제로 회수한 만큼 뺀다. 잔액이 0이면 거래를 남기지 않는다(`amount <> 0`).
+
 ---
 
 ## 8. 등급 및 랭킹

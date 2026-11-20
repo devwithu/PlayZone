@@ -31,18 +31,23 @@ class AccountController extends Controller
      * 가입 완료
      *
      * 만 14세 이상 확인, 이용약관·개인정보 처리방침 동의(필수), 마케팅 수신 동의(선택), 닉네임 설정.
-     * 이미 가입을 마친 회원이 다시 보내면 아무것도 바꾸지 않고 현재 정보를 돌려준다.
+     * 가입 포인트를 지급하고 `data.point`로 알려 준다. 이미 가입을 마친 회원이 다시 보내면 아무것도 바꾸지 않고
+     * 현재 정보를 돌려준다(`point.earned` 0).
      * 요청 제한은 회원당 분당 5회.
      */
     public function completeSignup(CompleteSignupRequest $request, SignupService $service): JsonResponse
     {
-        $user = $service->complete(
+        $result = $service->complete(
             user: $this->user($request),
             nickname: $request->string('nickname')->value(),
             marketingAgreed: $request->boolean('marketing'),
         );
 
-        return ApiResponse::success(new MeResource($user->load('socialAccounts')), '가입이 완료되었습니다.');
+        return ApiResponse::success([
+            ...(new MeResource($result->user->load('socialAccounts')))->resolve($request),
+            // 가입 포인트 (api-spec §3 data.point). 재시도면 earned 0
+            'point' => $result->point->toArray(),
+        ], '가입이 완료되었습니다.');
     }
 
     /**
