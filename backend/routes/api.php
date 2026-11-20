@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Auth\AccountController;
 use App\Http\Controllers\Api\V1\Auth\SocialLoginController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,7 +12,19 @@ use Illuminate\Support\Facades\Route;
  */
 Route::prefix('v1')->name('api.v1.')->group(function () {
     // 인증·계정 (§7.1)
-    Route::post('auth/social/{provider}', [SocialLoginController::class, 'store'])
-        ->middleware('throttle:social-login')
-        ->name('auth.social');
+    Route::prefix('auth')->name('auth.')->group(function () {
+        Route::post('social/{provider}', [SocialLoginController::class, 'store'])
+            ->middleware('throttle:social-login')
+            ->name('social');
+
+        // P: 가입 미완료 회원도 호출 가능
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::get('me', [AccountController::class, 'me'])->name('me');
+            Route::post('signup/complete', [AccountController::class, 'completeSignup'])
+                ->middleware('throttle:signup-complete')
+                ->name('signup.complete');
+            Route::get('nickname-check', [AccountController::class, 'checkNickname'])->name('nickname-check');
+            Route::post('logout', [AccountController::class, 'logout'])->name('logout');
+        });
+    });
 });

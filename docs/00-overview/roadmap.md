@@ -48,7 +48,7 @@
 - **소셜 로그인 키 발급** (로그인 구현 직전): Google OAuth 클라이언트 ID(웹·Android·iOS), Apple Sign in with Apple(App ID, Services ID, .p8 키), 콜백 URL 등록 (ADR-003 §9)
 - [x] 회원·권한·소셜 계정 마이그레이션, 웹 Google·Apple 로그인(Socialite), 가입 완료 화면(만 14세 확인·약관·닉네임), 로그아웃 (2026-11-19, 가짜 로그인 응답으로 테스트, 실제 키로는 미확인)
 - [x] 앱 소셜 로그인 API `POST /api/v1/auth/social/{provider}` (2026-11-20): ID 토큰 검증(서명·iss·aud·exp), Sanctum 토큰 발급, Apple authorization code → refresh token 저장. 테스트용 키로 검증, 실제 키로는 미확인
-- [ ] 앱 인증 API 나머지: 가입 완료, 닉네임 확인, 내 정보, 로그아웃 (api-spec §7.1)
+- [x] 앱 인증 API: 가입 완료, 닉네임 확인, 내 정보, 로그아웃 (2026-11-20, api-spec §7.1. 등급·제재·가입 포인트는 3단계)
 - [ ] 마이페이지 계정 연결, 탈퇴 (ADR-003)
 - Filament 설치, 회원 관리 화면
 - [x] 공통 API 응답 형식 (2026-11-20): `/api/v1` 라우트, Sanctum(토큰 60일), 성공·목록·오류 응답, 오류 코드 enum, 기본 요청 제한, Scramble OpenAPI(`/docs/api`). 규칙은 `docs/04-development/coding-conventions.md` §1

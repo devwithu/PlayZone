@@ -184,6 +184,43 @@
 ```
 - `signup_completed: false`면 앱이 가입 완료 화면(약관·닉네임)을 띄운다.
 
+**가입 완료 요청 예시** (`POST /auth/signup/complete`, 웹 가입 완료와 같은 검증 규칙)
+```json
+{
+  "nickname": "젤다러버",
+  "age_confirmed": true,
+  "terms": true,
+  "privacy": true,
+  "marketing": false
+}
+```
+- `age_confirmed`, `terms`, `privacy`는 `true`여야 한다. 닉네임은 2~12자 한글·영문·숫자·밑줄, 대소문자 구분 없이 중복 불가.
+- 응답 `data`는 `GET /auth/me`와 같다. 이미 가입을 마친 회원이 다시 보내면 아무것도 바꾸지 않고 현재 정보를 준다(재시도에 안전).
+- 가입 포인트(`data.point`)는 3단계에서 `PointService`를 만들 때 추가한다.
+
+**내 정보 응답 예시** (`GET /auth/me`)
+```json
+{
+  "success": true,
+  "message": "",
+  "data": {
+    "id": 100,
+    "nickname": "젤다러버",
+    "status": "active",
+    "signup_completed": true,
+    "point_balance": 1250,
+    "lifetime_points": 3000,
+    "marketing_agreed": false,
+    "signup_completed_at": "2026-11-20T03:00:00Z",
+    "social_accounts": [{ "provider": "google", "connected_at": "2026-11-20T02:58:00Z" }]
+  }
+}
+```
+- `status`: `pending`(가입 미완료), `active`, `suspended`. 이메일은 주지 않는다.
+- 등급과 제재 상태는 3단계에서 `user_levels`·`user_sanctions` 테이블을 만들 때 추가한다.
+
+**닉네임 확인** (`GET /auth/nickname-check?nickname=젤다러버`): `data: { "available": true, "message": "사용할 수 있는 닉네임입니다." }`. 형식 오류·중복도 422가 아니라 `available: false`와 이유로 알려 준다. 본인의 현재 닉네임은 사용 가능으로 나온다.
+
 ### 7.2 게임
 
 | Method | URL | 기능 | 인증 |

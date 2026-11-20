@@ -54,6 +54,10 @@ class AppServiceProvider extends ServiceProvider
         // 소셜 로그인: 분당 10회, IP 기준
         RateLimiter::for('social-login', fn (Request $request): Limit => Limit::perMinute(10)
             ->by('social-login:'.$request->ip()));
+
+        // 가입 완료(닉네임 설정): 분당 5회, 회원 기준
+        RateLimiter::for('signup-complete', fn (Request $request): Limit => Limit::perMinute(5)
+            ->by('signup-complete:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
     }
 
     /**
