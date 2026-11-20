@@ -5,6 +5,8 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import DeleteAccount from '@/components/DeleteAccount.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
+import SocialAccounts from '@/components/SocialAccounts.vue';
+import type { SocialAccountItem } from '@/components/SocialAccounts.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +22,14 @@ defineOptions({
         ],
     },
 });
+
+defineProps<{
+    socialAccounts: SocialAccountItem[];
+    socialAccountMessage?: {
+        type: 'success' | 'error';
+        message: string;
+    } | null;
+}>();
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -66,6 +76,12 @@ const user = computed(() => page.props.auth.user);
                 </Button>
             </div>
         </Form>
+
+        <SocialAccounts
+            class="border-t pt-6"
+            :accounts="socialAccounts"
+            :message="socialAccountMessage"
+        />
 
         <DeleteAccount class="border-t pt-6" />
     </div>

@@ -106,6 +106,7 @@
 | `ACCOUNT_SUSPENDED` | 403 | 정지된 회원 |
 | `REJOIN_RESTRICTED` | 403 | 탈퇴 후 30일 이내 같은 소셜 계정으로 재가입 |
 | `SOCIAL_ACCOUNT_IN_USE` | 409 | 연결하려는 소셜 계정이 이미 다른 회원에 연결됨 |
+| `SOCIAL_PROVIDER_ALREADY_LINKED` | 409 | 같은 제공자의 다른 계정이 이미 연결됨 (회원당 제공자별 1개). 먼저 해제해야 한다 |
 | `LAST_LOGIN_METHOD` | 409 | 남은 로그인 수단이 하나뿐이라 연결 해제 불가 |
 | `FORBIDDEN` | 403 | 권한 없음 (남의 글 수정 등) |
 | `REVIEW_BANNED` | 403 | 리뷰 작성 제한 중. `errors.ends_at` 포함 (영구면 `null`) |
@@ -218,6 +219,8 @@
 ```
 - `status`: `pending`(가입 미완료), `active`, `suspended`. 이메일은 주지 않는다.
 - 등급과 제재 상태는 3단계에서 `user_levels`·`user_sanctions` 테이블을 만들 때 추가한다.
+
+**소셜 계정 연결** (`POST /auth/social-accounts/{provider}`): 요청은 `{ "id_token": "eyJ...", "authorization_code": "c1a..." }`(코드는 Apple만), 응답 `data`는 `GET /auth/me`와 같다. 해제(`DELETE`)도 같은 형식으로 응답한다. 이미 연결된 같은 계정을 다시 보내면 성공으로 처리한다. Apple 계정을 해제하면 Apple 토큰도 폐기한다.
 
 **닉네임 확인** (`GET /auth/nickname-check?nickname=젤다러버`): `data: { "available": true, "message": "사용할 수 있는 닉네임입니다." }`. 형식 오류·중복도 422가 아니라 `available: false`와 이유로 알려 준다. 본인의 현재 닉네임은 사용 가능으로 나온다.
 
@@ -401,4 +404,5 @@
 
 **변경 이력:**
 - 2026-11-19 ADR-002(Inertia)·ADR-003(소셜 로그인 전용) 결정에 따라 §2 인증, §5 오류 코드, §6 요청 제한, §7.1 인증 엔드포인트, §8을 수정했다.
+- 2026-11-20 계정 연결을 구현하면서 §5에 `SOCIAL_PROVIDER_ALREADY_LINKED`를 추가했다 (`social_accounts`의 `user_id + provider` UNIQUE).
 - 2026-11-20 공통 응답 형식을 구현하면서 §4에 400·405를, §5에 `METHOD_NOT_ALLOWED`·`BAD_REQUEST`를 추가했다. 프레임워크가 내는 모든 오류에도 `code`가 있어야 앱이 분기할 수 있기 때문이다. §9에 문서 주소를 적었다.

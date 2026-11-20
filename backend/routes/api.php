@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AccountController;
+use App\Http\Controllers\Api\V1\Auth\SocialAccountController;
 use App\Http\Controllers\Api\V1\Auth\SocialLoginController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,15 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
                 ->name('signup.complete');
             Route::get('nickname-check', [AccountController::class, 'checkNickname'])->name('nickname-check');
             Route::post('logout', [AccountController::class, 'logout'])->name('logout');
+        });
+
+        // O: 가입 완료 회원만
+        Route::middleware(['auth:sanctum', 'signup.completed'])->group(function () {
+            Route::post('social-accounts/{provider}', [SocialAccountController::class, 'store'])
+                ->middleware('throttle:social-login')
+                ->name('social-accounts.store');
+            Route::delete('social-accounts/{provider}', [SocialAccountController::class, 'destroy'])
+                ->name('social-accounts.destroy');
         });
     });
 });

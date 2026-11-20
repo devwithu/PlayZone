@@ -34,7 +34,7 @@ class MeResource extends JsonResource
             'signup_completed_at' => $this->signup_completed_at?->toIso8601ZuluString(),
             /** 연결된 소셜 계정 */
             'social_accounts' => $this->socialAccounts
-                ->sortBy('created_at')
+                ->sortBy('id')
                 ->values()
                 ->map(fn (SocialAccount $account): array => [
                     'provider' => $account->provider,

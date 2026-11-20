@@ -14,6 +14,7 @@ enum ApiErrorCode: string
     case AccountSuspended = 'ACCOUNT_SUSPENDED';
     case RejoinRestricted = 'REJOIN_RESTRICTED';
     case SocialAccountInUse = 'SOCIAL_ACCOUNT_IN_USE';
+    case SocialProviderAlreadyLinked = 'SOCIAL_PROVIDER_ALREADY_LINKED';
     case LastLoginMethod = 'LAST_LOGIN_METHOD';
     case Forbidden = 'FORBIDDEN';
     case ReviewBanned = 'REVIEW_BANNED';
@@ -41,7 +42,7 @@ enum ApiErrorCode: string
             self::Forbidden, self::ReviewBanned => 403,
             self::NotFound => 404,
             self::MethodNotAllowed => 405,
-            self::SocialAccountInUse, self::LastLoginMethod, self::AttendanceAlreadyDone,
+            self::SocialAccountInUse, self::SocialProviderAlreadyLinked, self::LastLoginMethod, self::AttendanceAlreadyDone,
             self::ReviewAlreadyExists, self::ReviewHiddenExists, self::GameNotReleased,
             self::AlreadyReported, self::CannotTargetOwn, self::NotEditable,
             self::InsufficientPoints, self::EventClosed => 409,
@@ -64,6 +65,7 @@ enum ApiErrorCode: string
             self::AccountSuspended => '이용이 정지된 계정입니다.',
             self::RejoinRestricted => '탈퇴 후 30일 동안은 같은 계정으로 다시 가입할 수 없습니다.',
             self::SocialAccountInUse => '이미 다른 회원에 연결된 계정입니다.',
+            self::SocialProviderAlreadyLinked => '이미 같은 종류의 다른 계정이 연결되어 있습니다. 먼저 연결을 해제해 주세요.',
             self::LastLoginMethod => '마지막 로그인 수단은 연결을 해제할 수 없습니다.',
             self::Forbidden => '권한이 없습니다.',
             self::ReviewBanned => '리뷰 작성이 제한된 상태입니다.',

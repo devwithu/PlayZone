@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureSignupCompleted;
 use App\Http\Middleware\EnsureSignupPending;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Services\SocialAuth\WebSocialiteDrivers;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,7 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        // Apple 드라이버의 nonce 쿠키는 드라이버가 직접 암호화한다 (WebSocialiteDrivers)
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', WebSocialiteDrivers::APPLE_NONCE_COOKIE]);
 
         // Apple 로그인은 콜백을 다른 사이트에서 POST(form_post)로 보낸다 (ADR-003)
         $middleware->validateCsrfTokens(except: ['auth/apple/callback']);
