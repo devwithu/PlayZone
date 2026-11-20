@@ -25,5 +25,8 @@ class DatabaseSeeder extends Seeder
         User::factory()->pending()->create([
             'email' => 'pending@example.com',
         ]);
+
+        // 장르·플랫폼 기본 목록은 마이그레이션이 넣는다
+        $this->call(GameSeeder::class);
     }
 }

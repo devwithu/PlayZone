@@ -204,6 +204,22 @@ erDiagram
 - 인덱스: `(release_date)`, `(release_status, release_date)` (출시 일정 조회)
 - **리뷰 가능 여부** = 해당 게임에 `release_status = 'released'`인 행이 하나 이상 (리뷰 정책 §2)
 
+### 구현 메모 (2026-11-21)
+
+마이그레이션 `2026_11_21_000001_create_games_tables`에서 위 표에 더해 다음 제약을 두었다.
+
+| 대상 | 제약 | 이유 |
+|---|---|---|
+| `games` | `review_count`, `favorite_count` ≥ 0, `rating_avg`는 NULL 또는 1~10 | 집계 캐시가 잘못 갱신되는 것을 DB에서 막음 |
+| `game_images` | `image_type = 'cover'`인 행은 게임당 하나 (부분 UNIQUE 인덱스) | 표지가 여러 장이면 목록 화면이 어느 것을 쓸지 모호함 |
+| `game_release_dates` | `date_precision = 'tba'` ⇔ `release_date IS NULL` | 미정인데 날짜가 있거나, 날짜 단위가 있는데 날짜가 없는 상태를 막음 |
+| `game_release_dates` | `release_status = 'released'`이면 `release_date`가 있어야 함 | 출시 일정 정렬 기준. 오래된 게임은 연 단위(`year`)만 알아도 됨 |
+| `game_genre`, `game_platform` | `(genre_id, game_id)`, `(platform_id, game_id)` 인덱스 | 장르·플랫폼 필터 조회용 (PK는 `game_id`가 앞) |
+
+- 월·분기·연 단위 출시일은 그 기간의 **첫날**로 저장한다(모델이 저장할 때 보정). 화면 표시는 `GameReleaseDate::displayDate()` (예: `2027년 2분기`, `미정`).
+- 기본 장르 17개·플랫폼 9개는 `roles`처럼 마이그레이션(`2026_11_21_000002`)으로 넣는다. slug는 필터 쿼리에 쓰이므로 바꾸지 않는다.
+- `pg_trgm` 확장은 게임 마이그레이션이 `CREATE EXTENSION IF NOT EXISTS`로 만든다.
+
 ---
 
 ## 5. 게임 평가 및 리뷰
