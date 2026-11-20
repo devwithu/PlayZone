@@ -158,4 +158,5 @@ REDIS_PORT=6380
   composer test
   ```
   출시 전까지는 처음 만든 마이그레이션 파일을 그 자리에서 고치기도 하므로, `migrate`가 아니라 `migrate:fresh`로 DB를 다시 만든다(로컬 데이터는 지워진다). 출시 후에는 마이그레이션을 고치지 않고 새로 추가한다.
+- **CI:** `backend/`를 바꿔 push하면 GitHub Actions(`.github/workflows/tests.yml`)가 `composer ci:check`(JS 린트·타입, Pint, PHPStan, 테스트)를 실행한다. push 전에 로컬에서 `npm run build && composer ci:check`로 같은 검사를 할 수 있다.
 - **화면을 추가하면 빌드부터:** Inertia 페이지를 렌더링하는 테스트는 Vite 빌드 결과(manifest)를 읽는다. 빌드하지 않으면 "Unable to locate file in Vite manifest"로 실패한다.

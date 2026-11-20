@@ -53,7 +53,7 @@
 - [x] 계정 연결 (2026-11-20): 웹 설정 > 로그인 연결, 앱 `POST/DELETE /api/v1/auth/social-accounts/{provider}`. 웹 Apple 로그인 nonce 처리 수정 포함. 실제 키로는 미확인
 - Filament 설치, 회원 관리 화면
 - [x] 공통 API 응답 형식 (2026-11-20): `/api/v1` 라우트, Sanctum(토큰 60일), 성공·목록·오류 응답, 오류 코드 enum, 기본 요청 제한, Scramble OpenAPI(`/docs/api`). 규칙은 `docs/04-development/coding-conventions.md` §1
-- 테스트 환경, GitHub Actions CI
+- [x] GitHub Actions CI (2026-11-20): `.github/workflows/tests.yml`, `backend/` 변경 시 PostgreSQL 18 서비스로 `composer ci:check` 실행
 - 개발 환경 문서: `docs/04-development/environment-setup.md`
 
 **완료 기준:** 웹과 API 양쪽에서 같은 Google·Apple 계정으로 로그인할 수 있고, 게임 상세 페이지가 SSR로 렌더링된다.
