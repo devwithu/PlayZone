@@ -39,6 +39,19 @@ class GameImage extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        // 행을 지우거나 파일을 바꾸면 이전 파일도 지운다 (DB에는 상대 경로만 있으므로 디스크가 바뀌어도 그대로 동작)
+        static::updated(function (GameImage $image) {
+            $previous = $image->getOriginal('image_path');
+            if ($image->wasChanged('image_path') && is_string($previous) && $previous !== '') {
+                Storage::delete($previous);
+            }
+        });
+
+        static::deleted(fn (GameImage $image) => Storage::delete($image->image_path));
+    }
+
     /**
      * @return BelongsTo<Game, $this>
      */

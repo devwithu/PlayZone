@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users;
 
+use App\Filament\Concerns\RequiresAdminRole;
 use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Resources\Users\Pages\ViewUser;
 use App\Filament\Resources\Users\Schemas\UserInfolist;
@@ -16,11 +17,13 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * 회원 관리. 회원은 소셜 로그인으로만 생기므로 등록·수정·삭제 화면이 없다.
+ * 회원 관리 (ADM-06, admin 이상). 회원은 소셜 로그인으로만 생기므로 등록·수정·삭제 화면이 없다.
  * 제재·포인트 수동 지급은 3단계(user_sanctions, PointService)에서 추가한다.
  */
 class UserResource extends Resource
 {
+    use RequiresAdminRole;
+
     protected static ?string $model = User::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;

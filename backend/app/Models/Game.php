@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 /**
  * 게임 (ERD §4). 삭제하지 않고 status를 hidden으로 바꾼다.
@@ -37,6 +38,21 @@ class Game extends Model
 {
     /** @use HasFactory<GameFactory> */
     use HasFactory;
+
+    /**
+     * 웹 주소 /games/{slug} (화면 설계 W-05). 영문 소문자·숫자·한글을 하이픈으로 잇는다.
+     * 한글 주소는 네이버 검색 노출에 유리하다. 공개 후 바꾸면 기존 링크가 끊긴다.
+     */
+    public const SLUG_PATTERN = '/^[a-z0-9가-힣]+(?:-[a-z0-9가-힣]+)*$/u';
+
+    /**
+     * 제목으로 slug 후보를 만든다. 예: "별빛 원정대: 두 번째 이야기!" → "별빛-원정대-두-번째-이야기"
+     */
+    public static function slugFromTitle(string $title): string
+    {
+        // 언어를 지정하지 않아야 한글을 로마자로 바꾸지 않고 그대로 둔다
+        return Str::slug($title, '-', null);
+    }
 
     /**
      * @var array<string, mixed>

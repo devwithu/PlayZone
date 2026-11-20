@@ -96,7 +96,7 @@ class AdminPanelTest extends TestCase
     public function test_admin_views_member_detail(): void
     {
         $member = User::factory()->create(['nickname' => '젤다러버']);
-        $this->actingAs($this->userWithRole(Role::MODERATOR));
+        $this->actingAs($this->userWithRole(Role::ADMIN));
 
         $this->get("/admin/users/{$member->id}")->assertOk()->assertSee('젤다러버');
     }

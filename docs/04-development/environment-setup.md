@@ -86,7 +86,7 @@ Windows에서는 **WSL2(Ubuntu) 안에서 개발**한다. Laravel 공식 도구�
    cd ~/code/PlayZone && docker compose up -d
    cd backend
    cp .env.example .env && composer install && php artisan key:generate
-   php artisan migrate && npm ci && npm run build
+   php artisan migrate && php artisan storage:link && npm ci && npm run build
    composer test   # 전부 통과하면 준비 완료
    ```
    PHP 확장은 `pdo_pgsql`이 필요하다(위 `php8.5-pgsql`). Redis는 `predis`(PHP 코드)로 연결하므로 phpredis 확장은 없어도 된다.
@@ -159,5 +159,6 @@ REDIS_PORT=6380
   ```
   출시 전까지는 처음 만든 마이그레이션 파일을 그 자리에서 고치기도 하므로, `migrate`가 아니라 `migrate:fresh`로 DB를 다시 만든다(로컬 데이터는 지워진다). 출시 후에는 마이그레이션을 고치지 않고 새로 추가한다.
 - **관리자 화면(`/admin`):** 웹에서 소셜 로그인한 뒤, 그 회원에게 `php artisan user:role {회원 ID 또는 이메일} super_admin`으로 역할을 주면 들어갈 수 있다. DB는 PC마다 따로이므로 PC마다 한 번씩 지정한다. Filament 화면 파일(`public/js/filament` 등)은 Git에 올리지 않고 `composer install` 때 자동으로 만들어진다.
+- **업로드 파일 링크:** 이미지 업로드는 `storage/app/public`에 저장되고 `public/storage` 링크로 제공된다. PC마다 한 번 `php artisan storage:link`를 실행한다(링크는 Git에 올리지 않음).
 - **CI:** `backend/`를 바꿔 push하면 GitHub Actions(`.github/workflows/tests.yml`)가 `composer ci:check`(JS 린트·타입, Pint, PHPStan, 테스트)를 실행한다. push 전에 로컬에서 `npm run build && composer ci:check`로 같은 검사를 할 수 있다.
 - **화면을 추가하면 빌드부터:** Inertia 페이지를 렌더링하는 테스트는 Vite 빌드 결과(manifest)를 읽는다. 빌드하지 않으면 "Unable to locate file in Vite manifest"로 실패한다.

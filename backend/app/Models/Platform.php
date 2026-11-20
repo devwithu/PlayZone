@@ -28,6 +28,9 @@ class Platform extends Model
     /** @use HasFactory<PlatformFactory> */
     use HasFactory;
 
+    /** 필터 쿼리(?platform=)에 쓰이므로 영문 소문자·숫자·하이픈만 쓴다 */
+    public const SLUG_PATTERN = '/^[a-z0-9]+(?:-[a-z0-9]+)*$/';
+
     /**
      * @return array<string, string>
      */

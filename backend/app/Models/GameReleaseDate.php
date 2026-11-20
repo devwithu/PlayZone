@@ -58,6 +58,11 @@ class GameReleaseDate extends Model
                 ReleaseDatePrecision::Year => $date?->startOfYear(),
             };
         });
+
+        // 출시일이 있는 플랫폼은 게임의 플랫폼 목록(필터용 game_platform)에도 넣는다
+        static::saved(function (GameReleaseDate $releaseDate) {
+            $releaseDate->game->platforms()->syncWithoutDetaching([$releaseDate->platform_id]);
+        });
     }
 
     /**
