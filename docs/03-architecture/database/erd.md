@@ -342,6 +342,8 @@ erDiagram
 ### post_attachments
 `post_id`, `file_path varchar(255)`, `original_name varchar(255)`, `mime_type varchar(100)`, `size_bytes integer`.
 
+구현 메모 (2026-11-21): 마이그레이션 `2026_11_21_000008`. 기본 게시판 5개(free, discussion, guides, qna, info)를 넣는다. `posts`에 리뷰와 같이 `hidden_reason`, `edited_at`을 두고, 검색용 `pg_trgm` GIN 인덱스(title, content)를 만들었다. `post_attachments`에 `sort_order`, 타임스탬프를 두고 파일은 `posts/{post_id}/{uuid}.{ext}`에 저장한다. `post_comments`, `post_likes`는 게시글 삭제 시 함께 삭제(CASCADE, 실제로는 상태만 바꾼다). 신고(`post_reports`)는 신고 검토 작업에서 만든다.
+
 ### post_reports
 `review_reports`와 같은 구조(`post_id` 기준). UNIQUE `(user_id, post_id)`.
 

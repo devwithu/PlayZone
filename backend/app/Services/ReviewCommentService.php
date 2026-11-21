@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  * 리뷰 댓글 (리뷰 정책 §11). 한 단계만. 웹과 앱이 같이 쓴다.
  *
  * - comment_count는 공개 댓글 수다. 작성·삭제와 같은 트랜잭션에서 바꾼다.
- * - 작성 포인트(comment_create)는 키 `comment_create:{comment_id}`, 게시판 댓글과 일일 한도를 같이 센다.
+ * - 작성 포인트(comment_create)는 키 `comment_create:review:{comment_id}`, 게시판 댓글과 일일 한도를 같이 센다.
  * - 삭제·숨김 댓글은 자리만 남기고 "삭제된 댓글입니다"처럼 보여 준다.
  */
 class ReviewCommentService
@@ -62,7 +62,7 @@ class ReviewCommentService
             $point = $this->points->earn(
                 $user,
                 PointType::CommentCreate,
-                "comment_create:{$comment->id}",
+                "comment_create:review:{$comment->id}",
                 referenceType: 'review_comment',
                 referenceId: $comment->id,
             );

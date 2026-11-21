@@ -13,6 +13,7 @@ import { Toaster } from '@/components/ui/sonner';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import { home, login } from '@/routes';
+import { index as community } from '@/routes/community';
 import { index as games } from '@/routes/games';
 import { index as releases } from '@/routes/releases';
 
@@ -23,6 +24,7 @@ const user = computed(() => page.props.auth.user);
 const navItems = [
     { title: '게임', href: games().url },
     { title: '출시 일정', href: releases().url },
+    { title: '커뮤니티', href: community().url },
 ];
 
 const isCurrent = (href: string) =>

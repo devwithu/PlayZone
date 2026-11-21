@@ -20,6 +20,7 @@ void createInertiaApp({
             case name.startsWith('games/'):
             case name.startsWith('releases/'):
             case name.startsWith('reviews/'):
+            case name.startsWith('community/'):
                 return PublicLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];

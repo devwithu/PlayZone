@@ -4,6 +4,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SignupController;
 use App\Http\Controllers\Auth\SocialLoginController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\ReleaseController;
@@ -19,6 +20,11 @@ Route::get('games/{slug}', [GameController::class, 'show'])->where('slug', '[^/]
 
 // 출시 일정 (W-08)
 Route::get('releases', [ReleaseController::class, 'index'])->name('releases.index');
+
+// 커뮤니티 (W-09~W-11) 공개. 1차는 웹 전용 (MOB-008)
+Route::get('community', [CommunityController::class, 'index'])->name('community.index');
+Route::get('community/{board}', [CommunityController::class, 'board'])->where('board', '[a-z0-9-]+')->name('community.board');
+Route::get('posts/{post}', [CommunityController::class, 'show'])->whereNumber('post')->name('posts.show');
 
 // 리뷰 상세 (W-06) 공개. 검토 중·숨김 리뷰는 작성자만
 Route::get('reviews/{review}', [ReviewController::class, 'show'])->whereNumber('review')->name('reviews.show');
@@ -45,6 +51,18 @@ Route::middleware(['auth', 'signup.pending'])->prefix('signup')->name('signup.')
 
 Route::middleware(['auth', 'signup.completed'])->group(function () {
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+
+    // 게시글 쓰기 (W-12)·추천·댓글
+    Route::get('community/{board}/write', [CommunityController::class, 'create'])->where('board', '[a-z0-9-]+')->name('community.write');
+    Route::post('posts', [CommunityController::class, 'store'])->middleware('throttle:10,1')->name('posts.store');
+    Route::get('posts/{post}/edit', [CommunityController::class, 'edit'])->whereNumber('post')->name('posts.edit');
+    Route::put('posts/{post}', [CommunityController::class, 'update'])->whereNumber('post')->middleware('throttle:20,1')->name('posts.update');
+    Route::delete('posts/{post}', [CommunityController::class, 'destroy'])->whereNumber('post')->name('posts.destroy');
+    Route::post('posts/{post}/like', [CommunityController::class, 'like'])->whereNumber('post')->name('posts.like.store');
+    Route::delete('posts/{post}/like', [CommunityController::class, 'unlike'])->whereNumber('post')->name('posts.like.destroy');
+    Route::post('posts/{post}/comments', [CommunityController::class, 'storeComment'])->whereNumber('post')->middleware('throttle:20,1')->name('posts.comments.store');
+    Route::put('post-comments/{comment}', [CommunityController::class, 'updateComment'])->whereNumber('comment')->name('post-comments.update');
+    Route::delete('post-comments/{comment}', [CommunityController::class, 'destroyComment'])->whereNumber('comment')->name('post-comments.destroy');
 
     // 리뷰 쓰기 (W-07)·추천·댓글
     Route::get('games/{slug}/reviews/create', [ReviewController::class, 'create'])->where('slug', '[^/]+')->name('games.reviews.create');

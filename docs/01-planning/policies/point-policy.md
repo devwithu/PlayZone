@@ -69,7 +69,7 @@
 | 리뷰 작성 | `review_create:{user_id}:{game_id}` | 리뷰를 지우고 다시 써서 재지급 |
 | 리뷰 추천받음 | `review_like_received:{review_id}:{liker_id}` | 추천 취소 후 재추천으로 재지급 |
 | 게시글 작성 | `post_create:{post_id}` | 같은 글 재지급 |
-| 댓글 작성 | `comment_create:{comment_id}` | 같은 댓글 재지급 |
+| 댓글 작성 | `comment_create:review:{comment_id}`, `comment_create:post:{comment_id}` | 같은 댓글 재지급. 리뷰 댓글과 게시글 댓글은 테이블이 달라 ID가 겹치므로 종류를 넣는다 (2026-11-21) |
 | 이벤트 보상 | `event_reward:{event_id}:{user_id}` | 같은 이벤트 재지급 |
 | 회수 | `revoke:{원거래 id}` | 같은 거래 이중 회수 |
 | 관리자 지급·차감 | `admin:{uuid}` | 버튼 중복 클릭 |
