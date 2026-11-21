@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Auth\SocialAccountController;
 use App\Http\Controllers\Api\V1\Auth\SocialLoginController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\GameController;
+use App\Http\Controllers\Api\V1\MyPageController;
 use App\Http\Controllers\Api\V1\PointController;
 use App\Http\Controllers\Api\V1\ReleaseController;
 use App\Http\Controllers\Api\V1\ReviewCommentController;
@@ -76,8 +77,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::get('releases/upcoming', [ReleaseController::class, 'upcoming'])->name('releases.upcoming');
     Route::get('games/{game}/releases', [ReleaseController::class, 'game'])->whereNumber('game')->name('games.releases');
 
-    // 관심 게임·출시 알림 (§7.4, §7.7) O: 가입 완료 회원만
+    // 마이페이지·관심 게임·출시 알림 (§7.4, §7.7) O: 가입 완료 회원만
     Route::middleware(['auth:sanctum', 'signup.completed'])->group(function () {
+        Route::get('mypage', [MyPageController::class, 'index'])->name('mypage.index');
+        Route::get('mypage/reviews', [MyPageController::class, 'reviews'])->name('mypage.reviews');
         Route::get('mypage/favorites', [FavoriteController::class, 'index'])->name('mypage.favorites');
         Route::post('games/{game}/favorite', [FavoriteController::class, 'store'])->whereNumber('game')->name('games.favorite.store');
         Route::delete('games/{game}/favorite', [FavoriteController::class, 'destroy'])->whereNumber('game')->name('games.favorite.destroy');

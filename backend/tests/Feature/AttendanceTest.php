@@ -203,32 +203,34 @@ class AttendanceTest extends TestCase
         $this->actingAs($this->user);
         $this->attendedOn('2026-11-20', 2);
 
-        $this->get('/attendance')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->component('attendance/Index')
+        $this->get('/attendance')->assertRedirect('/mypage/attendance');
+        $this->get('/mypage/attendance')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('mypage/Attendance')
+            ->has('header.point_balance')
             ->where('status.attended', false)
             ->where('status.streak_days', 2)
             ->where('calendar.month', '2026-11')
             ->where('prevMonth', '2026-10')
             ->where('nextMonth', null));
 
-        $this->from('/attendance')->post('/attendance')
-            ->assertRedirect('/attendance')
+        $this->from('/mypage/attendance')->post('/attendance')
+            ->assertRedirect('/mypage/attendance')
             ->assertInertiaFlash('toast.message', '출석했습니다. 10P를 받았습니다.');
 
-        $this->from('/attendance')->post('/attendance')
-            ->assertRedirect('/attendance')
+        $this->from('/mypage/attendance')->post('/attendance')
+            ->assertRedirect('/mypage/attendance')
             ->assertInertiaFlash('toast', ['type' => 'info', 'message' => '오늘은 이미 출석했습니다.']);
 
-        $this->get('/attendance?month=2026-10')->assertInertia(fn (Assert $page) => $page
+        $this->get('/mypage/attendance?month=2026-10')->assertInertia(fn (Assert $page) => $page
             ->where('calendar.month', '2026-10')
             ->where('nextMonth', '2026-11'));
-        $this->get('/attendance?month=bad')->assertInertia(fn (Assert $page) => $page->where('calendar.month', '2026-11'));
+        $this->get('/mypage/attendance?month=bad')->assertInertia(fn (Assert $page) => $page->where('calendar.month', '2026-11'));
     }
 
     public function test_guest_is_sent_to_login(): void
     {
         $this->app['auth']->forgetGuards();
-        $this->get('/attendance')->assertRedirect('/login');
+        $this->get('/mypage/attendance')->assertRedirect('/login');
         $this->post('/attendance')->assertRedirect('/login');
     }
 }

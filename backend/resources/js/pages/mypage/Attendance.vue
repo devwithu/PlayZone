@@ -3,9 +3,10 @@ import { Form, Head, Link } from '@inertiajs/vue3';
 import { CalendarCheck, ChevronLeft, ChevronRight, Flame } from '@lucide/vue';
 import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
-import { index, store } from '@/routes/attendance';
+import { store } from '@/routes/attendance';
+import { attendance as index } from '@/routes/mypage';
 
-// W-17 출석 탭 (REQ-501~503). 마이페이지 탭 화면을 만들면 그 안으로 옮긴다
+// W-17 마이페이지 출석 탭 (REQ-501~503)
 const props = defineProps<{
     status: {
         date: string;
@@ -74,9 +75,7 @@ const bonusText = computed(() => {
 <template>
     <Head title="출석 체크" />
 
-    <div class="mx-auto w-full max-w-3xl space-y-6 p-4">
-        <h1 class="text-lg font-semibold">출석 체크</h1>
-
+    <div class="space-y-6">
         <section
             class="flex flex-col gap-4 rounded-lg border p-5 sm:flex-row sm:items-center sm:justify-between"
         >

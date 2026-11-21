@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { CalendarCheck, Heart, LogOut, Settings } from '@lucide/vue';
+import { CalendarCheck, LogOut, Settings, UserRound } from '@lucide/vue';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -9,8 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
 import { logout } from '@/routes';
-import { index as attendance } from '@/routes/attendance';
-import { favorites } from '@/routes/mypage';
+import { attendance, index as mypage } from '@/routes/mypage';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 
@@ -34,21 +33,21 @@ defineProps<Props>();
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
+            <Link class="block w-full cursor-pointer" :href="mypage()">
+                <UserRound class="mr-2 h-4 w-4" />
+                마이페이지
+            </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem :as-child="true">
             <Link class="block w-full cursor-pointer" :href="attendance()">
                 <CalendarCheck class="mr-2 h-4 w-4" />
                 출석 체크
             </Link>
         </DropdownMenuItem>
         <DropdownMenuItem :as-child="true">
-            <Link class="block w-full cursor-pointer" :href="favorites()">
-                <Heart class="mr-2 h-4 w-4" />
-                관심 게임
-            </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem :as-child="true">
             <Link class="block w-full cursor-pointer" :href="edit()" prefetch>
                 <Settings class="mr-2 h-4 w-4" />
-                Settings
+                설정
             </Link>
         </DropdownMenuItem>
     </DropdownMenuGroup>
@@ -62,7 +61,7 @@ defineProps<Props>();
             data-test="logout-button"
         >
             <LogOut class="mr-2 h-4 w-4" />
-            Log out
+            로그아웃
         </Link>
     </DropdownMenuItem>
 </template>

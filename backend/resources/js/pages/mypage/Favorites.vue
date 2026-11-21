@@ -8,7 +8,7 @@ import { index as games, show } from '@/routes/games';
 import { favorites as favoritesRoute } from '@/routes/mypage';
 import type { FavoriteGame } from '@/types/game';
 
-// W-17 관심 게임 탭 (REQ-604, REQ-204). 마이페이지 탭 화면은 3단계에서 만든다
+// W-17 마이페이지 관심 게임 탭 (REQ-604, REQ-204)
 defineProps<{
     favorites: {
         items: FavoriteGame[];
@@ -22,13 +22,10 @@ const { toggleFavorite } = useFavoriteActions();
 <template>
     <Head title="관심 게임" />
 
-    <div class="mx-auto w-full max-w-4xl space-y-6 p-4">
-        <h1 class="text-lg font-semibold">
-            관심 게임
-            <span class="text-sm font-normal text-muted-foreground">
-                {{ favorites.pagination.total.toLocaleString() }}개
-            </span>
-        </h1>
+    <div class="space-y-4">
+        <p class="text-sm text-muted-foreground">
+            관심 게임 {{ favorites.pagination.total.toLocaleString() }}개
+        </p>
 
         <div
             v-if="!favorites.items.length"

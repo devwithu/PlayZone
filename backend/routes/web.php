@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\MyPageController;
 use App\Http\Controllers\ReleaseController;
 use App\Http\Controllers\ReviewCommentController;
 use App\Http\Controllers\ReviewController;
@@ -50,7 +51,8 @@ Route::middleware(['auth', 'signup.pending'])->prefix('signup')->name('signup.')
 });
 
 Route::middleware(['auth', 'signup.completed'])->group(function () {
-    Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    // 예전 출석 주소는 마이페이지 출석 탭으로 보낸다
+    Route::get('attendance', fn () => to_route('mypage.attendance'))->name('attendance.index');
 
     // 게시글 쓰기 (W-12)·추천·댓글
     Route::get('community/{board}/write', [CommunityController::class, 'create'])->where('board', '[a-z0-9-]+')->name('community.write');
@@ -76,10 +78,18 @@ Route::middleware(['auth', 'signup.completed'])->group(function () {
     Route::put('review-comments/{comment}', [ReviewCommentController::class, 'update'])->whereNumber('comment')->name('review-comments.update');
     Route::delete('review-comments/{comment}', [ReviewCommentController::class, 'destroy'])->whereNumber('comment')->name('review-comments.destroy');
     Route::post('attendance', [AttendanceController::class, 'store'])->middleware('throttle:10,1')->name('attendance.store');
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    // 스타터 키트의 대시보드 주소는 마이페이지로 보낸다
+    Route::get('dashboard', fn () => to_route('mypage.index'))->name('dashboard');
+
+    // 마이페이지 (W-17) 탭
+    Route::get('mypage', [MyPageController::class, 'index'])->name('mypage.index');
+    Route::get('mypage/reviews', [MyPageController::class, 'reviews'])->name('mypage.reviews');
+    Route::get('mypage/posts', [MyPageController::class, 'posts'])->name('mypage.posts');
+    Route::get('mypage/favorites', [MyPageController::class, 'favorites'])->name('mypage.favorites');
+    Route::get('mypage/points', [MyPageController::class, 'points'])->name('mypage.points');
+    Route::get('mypage/attendance', [MyPageController::class, 'attendance'])->name('mypage.attendance');
 
     // 관심 게임·출시 알림 (REQ-604, REQ-204)
-    Route::get('mypage/favorites', [FavoriteController::class, 'index'])->name('mypage.favorites');
     Route::post('games/{game}/favorite', [FavoriteController::class, 'store'])->whereNumber('game')->name('games.favorite.store');
     Route::delete('games/{game}/favorite', [FavoriteController::class, 'destroy'])->whereNumber('game')->name('games.favorite.destroy');
     Route::post('games/{game}/release-alert', [FavoriteController::class, 'enableReleaseAlert'])->whereNumber('game')->name('games.release-alert.store');

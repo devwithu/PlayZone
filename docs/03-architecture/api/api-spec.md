@@ -416,6 +416,14 @@
 | PUT | /notifications/{id}/read | 읽음 처리 | O |
 | **PUT** | **/notifications/read-all** | 모두 읽음 | O |
 
+**마이페이지 구현 메모 (2026-11-21)**
+
+- `GET /mypage`: `{nickname, point_balance, lifetime_points, level, next_level, attendance: {attended_today, streak_days, month_count}, counts: {reviews, posts, favorites}}`. `level`, `next_level`은 `GET /auth/me`와 같다. 작성 수는 삭제한 글만 빼고 센다(검토 중·숨김 포함). `month_count`는 이번 달(KST) 출석 일수.
+- `GET /mypage/reviews`: 최근 작성 순, 페이지 단위. 항목은 리뷰 상세와 같은 모양(`game` 포함)이고, 검토 중·숨김 리뷰도 `status`, `hidden_reason`과 함께 준다(REQ-313). 삭제한 리뷰는 빠진다.
+- `GET /mypage/posts`는 커뮤니티 앱 API와 함께 2차에 만든다(MOB-008). 웹 마이페이지에는 내 글 탭이 있다.
+- 프로필 수정(`PUT /mypage/profile`, 이미지)은 설정(W-18) 작업에서 만든다.
+- 웹은 `/mypage`(대시보드), `/mypage/reviews`, `/mypage/posts`, `/mypage/favorites`, `/mypage/points`(`?type=` 사유 필터), `/mypage/attendance`(`?month=`) 탭이다. 예전 `/attendance`, `/dashboard` 주소는 마이페이지로 보낸다.
+
 **관심 게임·출시 알림 구현 메모 (2026-11-21)**
 
 - `POST/DELETE /games/{id}/favorite`, `POST/DELETE /games/{id}/release-alerts`는 모두 멱등이다. 이미 그 상태여도 성공하고, 결과 상태 `{is_favorite, release_alert, favorite_count}`를 `data`로 준다.

@@ -15,12 +15,13 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as mypage } from '@/routes/mypage';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
+        title: '마이페이지',
+        href: mypage(),
         icon: LayoutGrid,
     },
 ];

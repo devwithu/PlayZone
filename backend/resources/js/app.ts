@@ -2,6 +2,7 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import MyPageLayout from '@/layouts/MyPageLayout.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
@@ -22,6 +23,8 @@ void createInertiaApp({
             case name.startsWith('reviews/'):
             case name.startsWith('community/'):
                 return PublicLayout;
+            case name.startsWith('mypage/'):
+                return [PublicLayout, MyPageLayout];
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:
