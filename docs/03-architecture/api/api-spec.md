@@ -218,7 +218,7 @@
 }
 ```
 - `status`: `pending`(가입 미완료), `active`, `suspended`. 이메일은 주지 않는다.
-- 등급과 제재 상태는 3단계에서 `user_levels`·`user_sanctions` 테이블을 만들 때 추가한다.
+- `level`(`{id, name, min_points, icon_url}`)과 `next_level`(`{id, name, min_points, points_needed}`, 최고 등급이면 `null`)을 준다(2026-11-21, [회원 등급 정책](../../01-planning/policies/level-policy.md)). 제재 상태는 `user_sanctions` 테이블을 만들 때 추가한다.
 
 **소셜 계정 연결** (`POST /auth/social-accounts/{provider}`): 요청은 `{ "id_token": "eyJ...", "authorization_code": "c1a..." }`(코드는 Apple만), 응답 `data`는 `GET /auth/me`와 같다. 해제(`DELETE`)도 같은 형식으로 응답한다. 이미 연결된 같은 계정을 다시 보내면 성공으로 처리한다. Apple 계정을 해제하면 Apple 토큰도 폐기한다.
 
@@ -371,7 +371,7 @@
 
 **포인트 구현 메모 (2026-11-21)**
 
-- `GET /points/balance`: `{point_balance, lifetime_points}`. 등급은 등급 정책이 정해지면 추가한다.
+- `GET /points/balance`: `{point_balance, lifetime_points, level, next_level}`. `level`, `next_level`은 `GET /auth/me`와 같다.
 - `GET /points/history`: 최근 거래 순, 페이지 단위. 항목은 `{id, type, type_label, amount, balance_after, description, created_at}`이다. `amount`는 적립이 양수, 차감이 음수다. `type`(포인트 정책 §3·§4 코드)으로 거른다.
 - `data.point.limited`: 일일 한도에 걸려 지급하지 않았거나(`earned: 0`), 포인트 한도의 남은 만큼만 지급했을 때 `true`다.
 

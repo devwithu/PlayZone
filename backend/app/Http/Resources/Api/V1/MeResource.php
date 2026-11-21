@@ -4,6 +4,7 @@ namespace App\Http\Resources\Api\V1;
 
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Services\UserLevelService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -30,6 +31,11 @@ class MeResource extends JsonResource
             'signup_completed' => ! $this->isPending(),
             'point_balance' => $this->point_balance,
             'lifetime_points' => $this->lifetime_points,
+            /**
+             * 현재 등급 `{id, name, min_points, icon_url}`과 다음 등급 `{id, name, min_points, points_needed}`.
+             * 가장 높은 등급이면 next_level은 null
+             */
+            ...app(UserLevelService::class)->summary($this->resource),
             'marketing_agreed' => $this->marketing_agreed_at !== null,
             'signup_completed_at' => $this->signup_completed_at?->toIso8601ZuluString(),
             /** 연결된 소셜 계정 */

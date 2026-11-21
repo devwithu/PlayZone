@@ -47,7 +47,10 @@ class PointTest extends TestCase
 
         $this->getJson('/api/v1/points/balance')
             ->assertOk()
-            ->assertJsonPath('data', ['point_balance' => 80, 'lifetime_points' => 110]);
+            ->assertJsonPath('data.point_balance', 80)
+            ->assertJsonPath('data.lifetime_points', 110)
+            ->assertJsonPath('data.level.name', '브론즈')
+            ->assertJsonPath('data.next_level.points_needed', 890);
 
         $this->getJson('/api/v1/points/history')
             ->assertOk()

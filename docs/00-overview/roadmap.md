@@ -72,7 +72,8 @@
 ## 3단계: 커뮤니티·포인트 (W10–W15)
 
 - [x] `PointService` 원장 구조 (2026-11-21): `point_policies`(§3 기본값), `point_transactions`, 적립·사용·회수·탈퇴 소멸, 일일 한도(KST), 가입 포인트, `GET /api/v1/points/balance`·`/points/history`. 이후 기능은 모두 이 서비스를 통해 포인트를 처리한다.
-  - 1단계에서 미뤄 둔 연결: [x] 가입 포인트(`SignupService::complete()`), [x] 탈퇴 시 잔액 소멸 `withdraw_expire`(`WithdrawalService::withdraw()`), [ ] 내 정보의 등급·제재(`MeResource`, 등급 정책과 `user_levels`·`user_sanctions` 필요)
+- [x] 회원 등급과 포인트 설정 관리 (2026-11-21): `user_levels`(브론즈·실버·골드·플래티넘), 적립·회수 시 등급 반영과 이력, 관리자 화면 "포인트·등급"(등급 추가·변경·삭제와 전체 재계산, 포인트 금액·한도 수정). [회원 등급 정책](../01-planning/policies/level-policy.md)
+  - 1단계에서 미뤄 둔 연결: [x] 가입 포인트(`SignupService::complete()`), [x] 탈퇴 시 잔액 소멸 `withdraw_expire`(`WithdrawalService::withdraw()`), [x] 내 정보의 등급(2026-11-21), [ ] 제재(`user_sanctions`)
 - 출석 (트랜잭션 + UNIQUE 제약, 동시 요청 테스트)
 - 리뷰·별점·추천·댓글, 평균 점수 반영, 작성 포인트 지급
 - 게시판·댓글, 마이페이지, 기본 랭킹

@@ -8,6 +8,7 @@ use App\Http\Resources\Api\V1\PointTransactionResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\PointTransaction;
 use App\Models\User;
+use App\Services\UserLevelService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,10 +17,12 @@ use Illuminate\Http\Request;
  */
 class PointController extends Controller
 {
+    public function __construct(private readonly UserLevelService $levels) {}
+
     /**
      * 포인트 잔액
      *
-     * 잔액과 누적 획득 포인트. 등급은 등급 정책이 정해지면 추가한다.
+     * 잔액, 누적 획득 포인트, 현재 등급과 다음 등급까지 남은 포인트(`next_level.points_needed`, 최고 등급이면 `next_level` null).
      */
     public function balance(Request $request): JsonResponse
     {
@@ -30,6 +33,7 @@ class PointController extends Controller
             'point_balance' => $user->point_balance,
             /** 지금까지 적립한 포인트 (사용해도 줄지 않음, 회수하면 줄어듦). 등급 기준 */
             'lifetime_points' => $user->lifetime_points,
+            ...$this->levels->summary($user),
         ]);
     }
 

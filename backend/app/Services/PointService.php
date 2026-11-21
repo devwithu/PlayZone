@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Data\PointResult;
 use App\Enums\ApiErrorCode;
+use App\Enums\LevelChangeReason;
 use App\Enums\PointType;
 use App\Enums\UserStatus;
 use App\Exceptions\ApiException;
@@ -23,10 +24,12 @@ use InvalidArgumentException;
  * - 금액과 날짜는 서버가 정한다. 하루 기준은 KST(ServiceDate).
  *
  * 각 메서드는 자체 트랜잭션을 연다. 가입 완료·탈퇴처럼 바깥 트랜잭션 안에서 부르면 그 트랜잭션에 포함된다.
- * 등급 반영과 알림은 등급 정책이 정해지면 커밋 뒤 처리로 추가한다 (§6-7, §9).
+ * 누적 포인트가 바뀌면 같은 트랜잭션에서 등급을 맞춘다(§9, UserLevelService). 등급 변경 알림은 4단계에서 커밋 뒤에 보낸다.
  */
 class PointService
 {
+    public function __construct(private readonly UserLevelService $levels) {}
+
     /**
      * 적립. 정책 사유(PointType::usesPolicy)는 point_policies의 금액·일일 한도를 따르고,
      * 이벤트 보상·관리자 지급은 $amount를 받는다. 활성 회원에게만 지급한다.
@@ -78,6 +81,7 @@ class PointService
             $transaction = $this->record($user, $type, $amount, $key, $referenceType, $referenceId, $description, $admin);
             $user->lifetime_points += $amount;
             $user->save();
+            $this->levels->sync($user, LevelChangeReason::Earn);
 
             return new PointResult($type, $amount, $user->point_balance, $limited, transaction: $transaction);
         });
@@ -152,6 +156,7 @@ class PointService
             $transaction = $this->record($user, PointType::Revoke, -$amount, $key, 'point_transaction', $original->id, $description, $admin);
             $user->lifetime_points = max(0, $user->lifetime_points - $amount);
             $user->save();
+            $this->levels->sync($user, LevelChangeReason::Revoke);
 
             return new PointResult(PointType::Revoke, -$amount, $user->point_balance, transaction: $transaction);
         });

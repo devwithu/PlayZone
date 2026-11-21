@@ -397,6 +397,8 @@ erDiagram
 ### user_levels
 `name varchar(30)`, `min_points integer UNIQUE` (**누적 획득 포인트** 기준), `icon_path varchar(255) NULL`, `sort_order smallint`.
 
+구현 메모 (2026-11-21): `sort_order`는 두지 않고 `min_points` 순으로 정렬한다(순서 기준이 둘이면 어긋날 수 있음). `name`도 UNIQUE, CHECK `min_points >= 0`. `users.user_level_id`(FK, 삭제 RESTRICT)를 추가했다. 규칙은 [회원 등급 정책](../../01-planning/policies/level-policy.md).
+
 ### user_level_histories
 `user_id`, `old_level_id NULL`, `new_level_id`, `reason varchar(20)` (`earn`/`revoke`/`admin`), `created_at`.
 

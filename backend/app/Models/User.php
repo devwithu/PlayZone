@@ -11,6 +11,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -26,6 +27,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property UserStatus $status
  * @property int $point_balance
  * @property int $lifetime_points
+ * @property int|null $user_level_id 누적 포인트로 정한 등급 (UserLevelService가 맞춘다)
  * @property CarbonImmutable|null $signup_completed_at
  * @property CarbonImmutable|null $terms_agreed_at
  * @property CarbonImmutable|null $age_confirmed_at
@@ -34,6 +36,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $remember_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property-read UserLevel|null $level
  */
 #[Fillable(['email', 'email_verified_at', 'nickname'])]
 #[Hidden(['password', 'remember_token'])]
@@ -67,7 +70,24 @@ class User extends Authenticatable implements FilamentUser, HasName
             'age_confirmed_at' => 'datetime',
             'marketing_agreed_at' => 'datetime',
             'withdrawn_at' => 'datetime',
+            'user_level_id' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // 새 회원은 기본 등급(0P)에서 시작한다
+        static::creating(function (User $user) {
+            $user->user_level_id ??= UserLevel::query()->where('min_points', '<=', $user->lifetime_points)->orderByDesc('min_points')->value('id');
+        });
+    }
+
+    /**
+     * @return BelongsTo<UserLevel, $this>
+     */
+    public function level(): BelongsTo
+    {
+        return $this->belongsTo(UserLevel::class, 'user_level_id');
     }
 
     /**
