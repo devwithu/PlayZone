@@ -19,6 +19,7 @@ void createInertiaApp({
             // 로그인 없이 보는 공개 화면 (SSR·검색 노출 대상)
             case name.startsWith('games/'):
             case name.startsWith('releases/'):
+            case name.startsWith('reviews/'):
                 return PublicLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];

@@ -7,6 +7,8 @@ use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\ReleaseController;
+use App\Http\Controllers\ReviewCommentController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -17,6 +19,9 @@ Route::get('games/{slug}', [GameController::class, 'show'])->where('slug', '[^/]
 
 // 출시 일정 (W-08)
 Route::get('releases', [ReleaseController::class, 'index'])->name('releases.index');
+
+// 리뷰 상세 (W-06) 공개. 검토 중·숨김 리뷰는 작성자만
+Route::get('reviews/{review}', [ReviewController::class, 'show'])->whereNumber('review')->name('reviews.show');
 
 // 로그인 (Google·Apple 전용, ADR-003)
 Route::middleware('guest')->group(function () {
@@ -40,6 +45,18 @@ Route::middleware(['auth', 'signup.pending'])->prefix('signup')->name('signup.')
 
 Route::middleware(['auth', 'signup.completed'])->group(function () {
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+
+    // 리뷰 쓰기 (W-07)·추천·댓글
+    Route::get('games/{slug}/reviews/create', [ReviewController::class, 'create'])->where('slug', '[^/]+')->name('games.reviews.create');
+    Route::post('games/{game}/reviews', [ReviewController::class, 'store'])->whereNumber('game')->middleware('throttle:10,1')->name('games.reviews.store');
+    Route::get('reviews/{review}/edit', [ReviewController::class, 'edit'])->whereNumber('review')->name('reviews.edit');
+    Route::put('reviews/{review}', [ReviewController::class, 'update'])->whereNumber('review')->middleware('throttle:20,1')->name('reviews.update');
+    Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->whereNumber('review')->name('reviews.destroy');
+    Route::post('reviews/{review}/like', [ReviewController::class, 'like'])->whereNumber('review')->name('reviews.like.store');
+    Route::delete('reviews/{review}/like', [ReviewController::class, 'unlike'])->whereNumber('review')->name('reviews.like.destroy');
+    Route::post('reviews/{review}/comments', [ReviewCommentController::class, 'store'])->whereNumber('review')->middleware('throttle:20,1')->name('reviews.comments.store');
+    Route::put('review-comments/{comment}', [ReviewCommentController::class, 'update'])->whereNumber('comment')->name('review-comments.update');
+    Route::delete('review-comments/{comment}', [ReviewCommentController::class, 'destroy'])->whereNumber('comment')->name('review-comments.destroy');
     Route::post('attendance', [AttendanceController::class, 'store'])->middleware('throttle:10,1')->name('attendance.store');
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
 

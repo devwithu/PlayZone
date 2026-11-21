@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ReviewSort;
 use App\Http\Requests\GameBrowseRequest;
 use App\Http\Resources\Api\V1\GameDetailResource;
 use App\Http\Resources\Api\V1\GameListResource;
+use App\Http\Resources\Api\V1\ReviewResource;
 use App\Http\Resources\Api\V1\TaxonomyResource;
+use App\Models\GameReview;
 use App\Models\Genre;
 use App\Models\Platform;
 use App\Models\User;
 use App\Services\FavoriteService;
+use App\Services\GameRatingService;
 use App\Services\GameService;
+use App\Services\ReviewService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Str;
@@ -26,6 +31,8 @@ class GameController extends Controller
     public function __construct(
         private readonly GameService $games,
         private readonly FavoriteService $favorites,
+        private readonly ReviewService $reviews,
+        private readonly GameRatingService $ratings,
     ) {}
 
     public function index(GameBrowseRequest $request): Response
@@ -66,10 +73,29 @@ class GameController extends Controller
         $game = $this->games->findPublishedBySlug($slug);
         /** @var User|null $user */
         $user = $request->user();
-        $detail = $this->props((new GameDetailResource($game))->forViewer($this->favorites->stateFor($user, $game)), $request);
+        $detail = $this->props(
+            (new GameDetailResource($game))
+                ->forViewer($this->favorites->stateFor($user, $game))
+                ->withMyReview($this->reviews->myReviewId($user, $game)),
+            $request,
+        );
+
+        // 리뷰 목록 (W-05). 주소창의 잘못된 sort는 추천순으로 본다
+        $sort = ReviewSort::tryFrom($request->string('sort')->value()) ?? ReviewSort::Likes;
+        $reviews = $this->reviews->listForGame($game, $sort, 10);
+        $liked = $this->reviews->likedIds($user, array_map(fn (GameReview $r): int => $r->id, $reviews->items()));
 
         return Inertia::render('games/Show', [
             'game' => $detail,
+            'summary' => $this->ratings->summary($game),
+            'reviews' => [
+                'items' => array_map(
+                    fn (GameReview $r) => (new ReviewResource($r))->forViewer($user, in_array($r->id, $liked, true))->resolve($request),
+                    $reviews->items(),
+                ),
+                'pagination' => ['current_page' => $reviews->currentPage(), 'last_page' => $reviews->lastPage(), 'total' => $reviews->total()],
+            ],
+            'sort' => $sort->value,
             // 검색엔진·공유 미리보기용 (첫 HTML에 들어감)
             'meta' => [
                 'description' => Str::limit(

@@ -1,21 +1,50 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { Heart } from '@lucide/vue';
+import { Heart, PenLine } from '@lucide/vue';
 import ReleaseAlertButton from '@/components/games/ReleaseAlertButton.vue';
+import RatingSummary from '@/components/reviews/RatingSummary.vue';
+import ReviewCard from '@/components/reviews/ReviewCard.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useFavoriteActions } from '@/composables/useFavoriteActions';
-import { index } from '@/routes/games';
+import { index, show as gameShow } from '@/routes/games';
+import { create as createReview } from '@/routes/games/reviews';
+import { show as reviewShow } from '@/routes/reviews';
 import { releaseStatusLabels } from '@/types/game';
 import type { GameDetail } from '@/types/game';
+import { reviewSortLabels } from '@/types/review';
+import type {
+    Pagination,
+    RatingSummary as Summary,
+    Review,
+    ReviewSort,
+} from '@/types/review';
 
-// W-05 게임 상세. 첫 HTML(SSR)에 제목·설명·OG 이미지 메타 태그가 들어간다 (WEB-003)
-// 점수 분포·세부 평가·리뷰 목록은 3단계에서 붙인다
+// W-05 게임 상세. 첫 HTML(SSR)에 제목·설명·OG 이미지 메타 태그와 리뷰 목록이 들어간다 (WEB-003)
 const props = defineProps<{
     game: GameDetail;
+    summary: Summary;
+    reviews: { items: Review[]; pagination: Pagination };
+    sort: ReviewSort;
     meta: { description: string; image: string | null; url: string };
 }>();
+
+const sorts = Object.entries(reviewSortLabels) as [ReviewSort, string][];
+
+function reviewsUrl(sort: ReviewSort, page = 1): string {
+    const query: Record<string, string | number> = {};
+
+    if (sort !== 'likes') {
+        query.sort = sort;
+    }
+
+    if (page > 1) {
+        query.page = page;
+    }
+
+    return gameShow(props.game.slug, { query }).url + '#reviews';
+}
 
 const credits = computed(() =>
     [
@@ -189,6 +218,100 @@ const hasUpcomingRelease = computed(
             <h2 class="font-semibold">게임 소개</h2>
             <p class="text-sm leading-relaxed whitespace-pre-line">
                 {{ game.description }}
+            </p>
+        </section>
+
+        <section id="reviews" class="scroll-mt-4 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="font-semibold">
+                    리뷰
+                    <span class="text-sm font-normal text-muted-foreground">
+                        {{ reviews.pagination.total.toLocaleString() }}개
+                    </span>
+                </h2>
+                <Button
+                    v-if="game.my_review_id"
+                    variant="outline"
+                    size="sm"
+                    as-child
+                >
+                    <Link :href="reviewShow(game.my_review_id)"
+                        >내 리뷰 보기</Link
+                    >
+                </Button>
+                <Button
+                    v-else-if="game.is_reviewable"
+                    size="sm"
+                    as-child
+                    data-test="write-review"
+                >
+                    <Link :href="createReview(game.slug)">
+                        <PenLine class="size-4" /> 리뷰 쓰기
+                    </Link>
+                </Button>
+            </div>
+
+            <RatingSummary v-if="summary.review_count > 0" :summary="summary" />
+
+            <template v-if="reviews.items.length">
+                <nav class="flex flex-wrap gap-1" aria-label="리뷰 정렬">
+                    <Button
+                        v-for="[value, label] in sorts"
+                        :key="value"
+                        :variant="value === sort ? 'secondary' : 'ghost'"
+                        size="sm"
+                        as-child
+                    >
+                        <Link
+                            :href="reviewsUrl(value)"
+                            preserve-scroll
+                            :only="['reviews', 'sort']"
+                            >{{ label }}</Link
+                        >
+                    </Button>
+                </nav>
+
+                <div class="divide-y">
+                    <ReviewCard
+                        v-for="review in reviews.items"
+                        :key="review.id"
+                        :review="review"
+                    />
+                </div>
+
+                <nav
+                    v-if="reviews.pagination.last_page > 1"
+                    class="flex justify-center gap-1"
+                    aria-label="리뷰 페이지"
+                >
+                    <Button
+                        v-for="p in reviews.pagination.last_page"
+                        :key="p"
+                        :variant="
+                            p === reviews.pagination.current_page
+                                ? 'default'
+                                : 'ghost'
+                        "
+                        size="icon"
+                        as-child
+                    >
+                        <Link
+                            :href="reviewsUrl(sort, p)"
+                            preserve-scroll
+                            :only="['reviews', 'sort']"
+                            >{{ p }}</Link
+                        >
+                    </Button>
+                </nav>
+            </template>
+            <p
+                v-else
+                class="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground"
+            >
+                아직 리뷰가 없어요.
+                <template v-if="game.is_reviewable"
+                    >첫 리뷰를 남겨 주세요!</template
+                >
             </p>
         </section>
 
