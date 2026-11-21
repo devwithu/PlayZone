@@ -51,6 +51,8 @@ Tests run against the PostgreSQL test DB `game_evaluation_test` (set in `phpunit
 - Feature tests that render an Inertia page need a current Vite manifest. After adding a page, run `npm run build` (or `build:ssr`), or the test fails with "Unable to locate file in Vite manifest".
 - CI: `.github/workflows/tests.yml` (repo root) runs on pushes/PRs that touch `backend/**`. It starts a PostgreSQL 18 service on port 5433 with the test DB, runs `npm run build`, then `composer ci:check` (JS lint, TS types, Pint, PHPStan, PHPUnit). Run `composer ci:check` locally (after `npm run build`) to reproduce it.
 
+Production install, cron (`schedule:run`), queue worker, SSR process and deploy steps: `docs/06-operations/server-setup.md`. Update it when adding a scheduled task, queue job type, process or env key.
+
 Original design doc: `docs/00-overview/game-evaluation-development-design.md`. Identical copies exist at `docs/game-evaluation-development-design.md` and `untitled folder/`. The confirmed docs listed below override it.
 
 ## Product: 게임평가단 (game evaluation community)
