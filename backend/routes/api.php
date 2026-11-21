@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\Auth\AccountController;
 use App\Http\Controllers\Api\V1\Auth\SocialAccountController;
 use App\Http\Controllers\Api\V1\Auth\SocialLoginController;
@@ -61,6 +62,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::delete('games/{game}/favorite', [FavoriteController::class, 'destroy'])->whereNumber('game')->name('games.favorite.destroy');
         Route::post('games/{game}/release-alerts', [FavoriteController::class, 'enableReleaseAlert'])->whereNumber('game')->name('games.release-alerts.store');
         Route::delete('games/{game}/release-alerts', [FavoriteController::class, 'disableReleaseAlert'])->whereNumber('game')->name('games.release-alerts.destroy');
+    });
+
+    // 출석 (§7.6) O: 가입 완료 회원만. 출석은 회원당 1분에 10번까지
+    Route::middleware(['auth:sanctum', 'signup.completed'])->prefix('attendance')->name('attendance.')->group(function () {
+        Route::get('today', [AttendanceController::class, 'today'])->name('today');
+        Route::post('/', [AttendanceController::class, 'store'])->middleware('throttle:10,1')->name('store');
+        Route::get('history', [AttendanceController::class, 'history'])->name('history');
     });
 
     // 포인트 (§7.6) O: 가입 완료 회원만

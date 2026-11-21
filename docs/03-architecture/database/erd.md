@@ -355,6 +355,7 @@ erDiagram
 
 - **UNIQUE `(user_id, attendance_date)`** (설계서 §4.10)
 - 지급 포인트는 원장(`point_transactions`)에만 기록한다. 설계서의 `points` 컬럼은 두지 않는다(§11).
+- 구현 메모 (2026-11-21): `id` 기본 키를 두고 원장 `reference_type = attendance`, `reference_id`로 연결한다. 회원 삭제 시 함께 삭제된다.
 
 ### point_policies
 | 컬럼 | 타입 | 제약 | 설명 |

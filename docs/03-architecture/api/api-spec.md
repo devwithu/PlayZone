@@ -369,6 +369,13 @@
 ```
 - 요청 본문은 없다. 날짜와 포인트는 서버가 정한다(설계서 §7.1).
 
+**출석 구현 메모 (2026-11-21)**
+
+- `POST /attendance`: 성공은 `201`. `data.point.earned`는 기본과 보너스를 합친 값, `balance`는 모두 지급한 뒤 잔액이다. `bonuses`에는 실제로 지급한 보너스만 들어간다. 출석 포인트가 꺼져 있어도 출석은 기록되고 `earned: 0`이다. 오늘 이미 출석했으면 `409 ATTENDANCE_ALREADY_DONE`. 회원당 1분에 10번까지.
+- `GET /attendance/today`: `{date, attended, streak_days, points, next_bonus}`. `streak_days`는 오늘 또는 어제까지 이어진 연속 일수(어제 빠졌으면 0)다. `points`는 오늘 출석 포인트(꺼져 있으면 `null`). `next_bonus`는 `{type, streak_days, days_left, points}`이며 `days_left`는 앞으로 몇 번 더 출석하면 받는지(1이면 다음 출석)다.
+- `GET /attendance/history?month=YYYY-MM`: `{month, count, days: [{date, streak_days}]}`. `month`가 없으면 이번 달(KST), 형식이 틀리면 `422`.
+- 웹은 `/attendance`(출석 버튼과 월 달력, 사용자 메뉴 "출석 체크")에서 같은 서비스를 쓴다.
+
 **포인트 구현 메모 (2026-11-21)**
 
 - `GET /points/balance`: `{point_balance, lifetime_points, level, next_level}`. `level`, `next_level`은 `GET /auth/me`와 같다.

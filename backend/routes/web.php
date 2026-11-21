@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SignupController;
 use App\Http\Controllers\Auth\SocialLoginController;
@@ -38,6 +39,8 @@ Route::middleware(['auth', 'signup.pending'])->prefix('signup')->name('signup.')
 });
 
 Route::middleware(['auth', 'signup.completed'])->group(function () {
+    Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::post('attendance', [AttendanceController::class, 'store'])->middleware('throttle:10,1')->name('attendance.store');
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
 
     // 관심 게임·출시 알림 (REQ-604, REQ-204)
