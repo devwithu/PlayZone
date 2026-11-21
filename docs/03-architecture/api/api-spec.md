@@ -296,6 +296,19 @@
 **리뷰 작성 실패 순서** (먼저 걸리는 것을 응답)
 `REVIEW_BANNED` → `GAME_NOT_RELEASED` → `REVIEW_HIDDEN_EXISTS` → `REVIEW_ALREADY_EXISTS` → `VALIDATION_FAILED`
 
+**리뷰 구현 메모 (2026-11-21)**
+
+- 리뷰 항목: `{id, game_id, game(상세에서만 {id, title, slug}), author, platform, title, content, overall_score, ratings, has_spoiler, like_count, comment_count, edited_at, created_at, is_mine, is_liked}`. `author`는 `{id, nickname, level: {name, icon_url}}`, 탈퇴한 회원이면 `{id: null, nickname: "탈퇴한 회원", level: null}`. `ratings`는 입력한 항목만 `{slug: score}`. `is_mine`, `is_liked`는 비회원이면 `null`. 본인 리뷰에만 `status`, `hidden_reason`이 있다.
+- `POST /games/{id}/reviews`: `201`, `data: {review, point}`. 작성 포인트는 회원+게임당 처음 한 번만이라 지우고 다시 쓰면 `point.earned: 0`. `platform_id`는 그 게임이 **출시된** 플랫폼만. `ratings` 값이 `null`이면 입력하지 않은 것으로 본다. 비활성·없는 항목 키는 `422`. 공개되지 않은 게임은 `404`.
+- `PUT /reviews/{id}`: 작성과 같은 본문으로 전체를 바꾼다(`ratings`에서 빠진 항목은 지워진다. 비활성 항목의 예전 점수는 남는다). 수정 전 내용은 `review_revisions`에 남고 `edited_at`이 채워진다. 남의 리뷰는 `403 FORBIDDEN`.
+- `DELETE /reviews/{id}`: 상태만 `deleted`. **검토 중(`blinded`)·숨김(`hidden`) 리뷰는 수정·삭제 모두 `409 NOT_EDITABLE`**이다. 숨김 리뷰를 지우고 새로 써서 §3 규칙을 피하는 것을 막는다.
+- 추천 `POST/DELETE /reviews/{id}/like`: 멱등, `data: {liked, like_count}`. 공개 리뷰만 추천할 수 있다(아니면 `404`). 본인 리뷰는 `409 CANNOT_TARGET_OWN`. 작성자 포인트는 추천한 회원당 한 번이고 일일 한도(50P)를 넘으면 추천만 된다.
+- 댓글 항목: `{id, review_id, author, content, status, placeholder, is_edited, created_at, is_mine}`. 삭제·숨김 댓글은 `author`, `content`가 `null`이고 `placeholder`("삭제된 댓글입니다.")를 준다. 목록은 오래된 순, 페이지 단위. 작성은 `201`, `data: {comment, point}`. `comment_count`는 공개 댓글 수다.
+- `GET /games/{id}/rating-summary`: `{review_count, rating_avg, distribution: {"1": n, …, "10": n}, categories: [{slug, name, avg_score, score_count}]}`. 공개 리뷰 3개 미만이면 `rating_avg`, `avg_score`는 `null`.
+- `GET /rating-categories`: `[{id, name, slug}]` 사용 중인 항목만, 표시 순서대로.
+- 게임 상세에 `my_review_id`(삭제한 리뷰 제외)를 추가했다.
+- 신고(`POST /reviews/{id}/reports`)와 `REVIEW_BANNED`는 관리자 리뷰 관리·신고·제재 작업에서 만든다.
+
 ### 7.4 출시 일정
 
 | Method | URL | 기능 | 인증 |

@@ -273,6 +273,8 @@ erDiagram
 | ratings | jsonb | | 세부 점수 `{slug: score}` |
 | created_at | timestamptz | | `updated_at` 없음 (변경 불가) |
 
+구현 메모 (2026-11-21): 수정 전 플랫폼·스포일러 여부도 남기도록 `platform_id`, `has_spoiler`를 추가했다. `ratings` jsonb는 키 순서를 보존하지 않는다.
+
 ### review_likes
 `review_id`, `user_id`, `created_at`. UNIQUE `(user_id, review_id)`. 추천 취소 시 행을 삭제한다(포인트 재지급은 원장 키가 막음).
 
@@ -309,6 +311,8 @@ erDiagram
 | score_count | integer | | 해당 항목에 점수를 준 공개 리뷰 수 |
 
 - PK `(game_id, rating_category_id)`, `id` 없음
+
+구현 메모 (2026-11-21): 리뷰 테이블은 마이그레이션 `2026_11_21_000007`. `rating_categories` 기본 6개(graphics, sound, story, controls, gameplay, value)를 마이그레이션이 넣는다. 평균·`game_rating_stats`는 `GameRatingService::recalculate()`가 커밋 뒤 원본에서 새로 계산한다(게임 행 잠금). 세부 평균은 항상 저장하고, 공개 리뷰 3개 미만이면 API에서 `null`로 보여 준다. 신고(`review_reports`)는 신고 검토 작업에서 만든다.
 
 ---
 

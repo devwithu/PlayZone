@@ -76,6 +76,8 @@
   - 1단계에서 미뤄 둔 연결: [x] 가입 포인트(`SignupService::complete()`), [x] 탈퇴 시 잔액 소멸 `withdraw_expire`(`WithdrawalService::withdraw()`), [x] 내 정보의 등급(2026-11-21), [ ] 제재(`user_sanctions`)
 - [x] 출석 (2026-11-21): `attendances` UNIQUE `(user_id, attendance_date)`, 회원 행 잠금, 7일·30일 연속 보너스, 앱 API(`/attendance`, `/today`, `/history`), 웹 `/attendance`(출석 버튼·월 달력). 프로세스 8개 동시 출석 테스트(`AttendanceConcurrencyTest`)로 한 번만 지급됨을 확인
 - 리뷰·별점·추천·댓글, 평균 점수 반영, 작성 포인트 지급
+  - [x] 백엔드·앱 API (2026-11-21): 리뷰 작성·수정(이력)·삭제, 세부 점수, 추천, 댓글, 평균·세부 평균·점수 분포, 작성·추천·댓글 포인트
+  - [ ] 웹 화면: 게임 상세의 점수 분포·리뷰 목록, 리뷰 작성·수정, 리뷰 상세(추천·댓글)
 - 게시판·댓글, 마이페이지, 기본 랭킹
 - 관리자 리뷰·게시글 관리, 신고 검토 대기열
 - 기본 이벤트(관리자 등록, 포인트 응모, 당첨 지정), 공지사항

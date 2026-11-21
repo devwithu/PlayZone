@@ -10,9 +10,12 @@ use App\Http\Resources\Api\V1\TaxonomyResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Genre;
 use App\Models\Platform;
+use App\Models\RatingCategory;
 use App\Models\User;
 use App\Services\FavoriteService;
+use App\Services\GameRatingService;
 use App\Services\GameService;
+use App\Services\ReviewService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -24,6 +27,8 @@ class GameController extends Controller
     public function __construct(
         private readonly GameService $games,
         private readonly FavoriteService $favorites,
+        private readonly ReviewService $reviews,
+        private readonly GameRatingService $ratings,
     ) {}
 
     /**
@@ -48,7 +53,7 @@ class GameController extends Controller
     /**
      * 게임 상세
      *
-     * 기본 정보, 이미지, 플랫폼별 출시일, 리뷰 수·평균. Bearer 토큰을 보내면 `is_favorite`, `release_alert`를 채운다(비회원은 null). 없거나 공개되지 않은 게임은 `404 NOT_FOUND`.
+     * 기본 정보, 이미지, 플랫폼별 출시일, 리뷰 수·평균. Bearer 토큰을 보내면 `my_review_id`, `is_favorite`, `release_alert`를 채운다(비회원은 null). 없거나 공개되지 않은 게임은 `404 NOT_FOUND`.
      */
     public function show(Request $request, int $game): JsonResponse
     {
@@ -57,7 +62,37 @@ class GameController extends Controller
         /** @var User|null $user */
         $user = $request->user('sanctum');
 
-        return ApiResponse::success((new GameDetailResource($detail))->forViewer($this->favorites->stateFor($user, $detail)));
+        return ApiResponse::success(
+            (new GameDetailResource($detail))
+                ->forViewer($this->favorites->stateFor($user, $detail))
+                ->withMyReview($this->reviews->myReviewId($user, $detail)),
+        );
+    }
+
+    /**
+     * 점수 분포·세부 항목 평균
+     *
+     * 공개 리뷰의 종합 점수 1~10별 리뷰 수(`distribution`)와 세부 항목 평균(`categories`).
+     * 공개 리뷰가 3개 미만이면 `rating_avg`와 항목별 `avg_score`는 null("평가 부족").
+     */
+    public function ratingSummary(int $game): JsonResponse
+    {
+        return ApiResponse::success($this->ratings->summary($this->games->findPublished($game)));
+    }
+
+    /**
+     * 세부 평가 항목 목록
+     *
+     * 리뷰 작성의 `ratings` 키(slug)와 화면 표시 이름. 사용 중인 항목만, 표시 순서대로.
+     */
+    public function ratingCategories(): JsonResponse
+    {
+        return ApiResponse::success(
+            RatingCategory::query()->active()->ordered()->get()
+                ->map(fn (RatingCategory $c) => ['id' => $c->id, 'name' => $c->name, 'slug' => $c->slug])
+                ->values()
+                ->all(),
+        );
     }
 
     /**

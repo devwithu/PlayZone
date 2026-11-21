@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\GameController;
 use App\Http\Controllers\Api\V1\PointController;
 use App\Http\Controllers\Api\V1\ReleaseController;
+use App\Http\Controllers\Api\V1\ReviewCommentController;
+use App\Http\Controllers\Api\V1\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,6 +51,25 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::get('games/{game}', [GameController::class, 'show'])->whereNumber('game')->name('games.show');
     Route::get('genres', [GameController::class, 'genres'])->name('genres.index');
     Route::get('platforms', [GameController::class, 'platforms'])->name('platforms.index');
+    Route::get('rating-categories', [GameController::class, 'ratingCategories'])->name('rating-categories.index');
+    Route::get('games/{game}/rating-summary', [GameController::class, 'ratingSummary'])->whereNumber('game')->name('games.rating-summary');
+
+    // 리뷰 (§7.3) -: 목록·상세·댓글은 로그인 없이. 토큰을 보내면 is_mine, is_liked를 채운다
+    Route::get('games/{game}/reviews', [ReviewController::class, 'index'])->whereNumber('game')->name('games.reviews.index');
+    Route::get('reviews/{review}', [ReviewController::class, 'show'])->whereNumber('review')->name('reviews.show');
+    Route::get('reviews/{review}/comments', [ReviewCommentController::class, 'index'])->whereNumber('review')->name('reviews.comments.index');
+
+    // 리뷰 쓰기 O: 가입 완료 회원만
+    Route::middleware(['auth:sanctum', 'signup.completed'])->group(function () {
+        Route::post('games/{game}/reviews', [ReviewController::class, 'store'])->whereNumber('game')->middleware('throttle:10,1')->name('games.reviews.store');
+        Route::put('reviews/{review}', [ReviewController::class, 'update'])->whereNumber('review')->middleware('throttle:20,1')->name('reviews.update');
+        Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->whereNumber('review')->name('reviews.destroy');
+        Route::post('reviews/{review}/like', [ReviewController::class, 'like'])->whereNumber('review')->name('reviews.like');
+        Route::delete('reviews/{review}/like', [ReviewController::class, 'unlike'])->whereNumber('review')->name('reviews.unlike');
+        Route::post('reviews/{review}/comments', [ReviewCommentController::class, 'store'])->whereNumber('review')->middleware('throttle:20,1')->name('reviews.comments.store');
+        Route::put('review-comments/{comment}', [ReviewCommentController::class, 'update'])->whereNumber('comment')->name('review-comments.update');
+        Route::delete('review-comments/{comment}', [ReviewCommentController::class, 'destroy'])->whereNumber('comment')->name('review-comments.destroy');
+    });
 
     // 출시 일정 (§7.4) -: 로그인 없이 호출.
     Route::get('releases', [ReleaseController::class, 'index'])->name('releases.index');

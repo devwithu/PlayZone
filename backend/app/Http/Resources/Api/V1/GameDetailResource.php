@@ -14,13 +14,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * 게임 상세 (api-spec §7.2 GET /games/{id}).
  *
- * 세부 항목 평균과 내 리뷰 ID는 리뷰(3단계)에서 추가한다.
+ * 점수 분포와 세부 항목 평균은 GET /games/{id}/rating-summary에 있다.
  *
  * @mixin Game
  */
 class GameDetailResource extends JsonResource
 {
     private ?FavoriteState $viewer = null;
+
+    private ?int $myReviewId = null;
 
     /**
      * @return array<string, mixed>
@@ -67,7 +69,16 @@ class GameDetailResource extends JsonResource
             'is_favorite' => $this->viewer?->isFavorite,
             /** 내 출시 알림이 켜져 있는지. 비회원이면 null */
             'release_alert' => $this->viewer?->releaseAlert,
+            /** 내가 이 게임에 쓴 리뷰 ID (삭제한 리뷰 제외). 없거나 비회원이면 null */
+            'my_review_id' => $this->myReviewId,
         ];
+    }
+
+    public function withMyReview(?int $reviewId): static
+    {
+        $this->myReviewId = $reviewId;
+
+        return $this;
     }
 
     /**
