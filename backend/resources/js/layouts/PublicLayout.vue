@@ -15,6 +15,7 @@ import { getInitials } from '@/composables/useInitials';
 import { home, login } from '@/routes';
 import { index as community } from '@/routes/community';
 import { index as games } from '@/routes/games';
+import { index as rankings } from '@/routes/rankings';
 import { index as releases } from '@/routes/releases';
 
 // 로그인 없이 보는 공개 화면(게임, 출시 일정 등)의 레이아웃. SSR 대상이므로 window·document를 쓰지 않는다
@@ -25,6 +26,7 @@ const navItems = [
     { title: '게임', href: games().url },
     { title: '출시 일정', href: releases().url },
     { title: '커뮤니티', href: community().url },
+    { title: '랭킹', href: rankings().url },
 ];
 
 const isCurrent = (href: string) =>

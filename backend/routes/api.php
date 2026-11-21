@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\GameController;
 use App\Http\Controllers\Api\V1\MyPageController;
 use App\Http\Controllers\Api\V1\PointController;
+use App\Http\Controllers\Api\V1\RankingController;
 use App\Http\Controllers\Api\V1\ReleaseController;
 use App\Http\Controllers\Api\V1\ReviewCommentController;
 use App\Http\Controllers\Api\V1\ReviewController;
@@ -94,6 +95,9 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/', [AttendanceController::class, 'store'])->middleware('throttle:10,1')->name('store');
         Route::get('history', [AttendanceController::class, 'history'])->name('history');
     });
+
+    // 랭킹 (§7.6) -: 로그인 없이. 토큰을 보내면 내 순위를 준다
+    Route::get('rankings', [RankingController::class, 'index'])->name('rankings.index');
 
     // 포인트 (§7.6) O: 가입 완료 회원만
     Route::middleware(['auth:sanctum', 'signup.completed'])->prefix('points')->name('points.')->group(function () {

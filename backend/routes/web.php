@@ -8,6 +8,7 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\MyPageController;
+use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ReleaseController;
 use App\Http\Controllers\ReviewCommentController;
 use App\Http\Controllers\ReviewController;
@@ -21,6 +22,9 @@ Route::get('games/{slug}', [GameController::class, 'show'])->where('slug', '[^/]
 
 // 출시 일정 (W-08)
 Route::get('releases', [ReleaseController::class, 'index'])->name('releases.index');
+
+// 랭킹 (W-13) 공개
+Route::get('rankings', [RankingController::class, 'index'])->name('rankings.index');
 
 // 커뮤니티 (W-09~W-11) 공개. 1차는 웹 전용 (MOB-008)
 Route::get('community', [CommunityController::class, 'index'])->name('community.index');

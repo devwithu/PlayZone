@@ -400,6 +400,12 @@
 - `GET /points/history`: 최근 거래 순, 페이지 단위. 항목은 `{id, type, type_label, amount, balance_after, description, created_at}`이다. `amount`는 적립이 양수, 차감이 음수다. `type`(포인트 정책 §3·§4 코드)으로 거른다.
 - `data.point.limited`: 일일 한도에 걸려 지급하지 않았거나(`earned: 0`), 포인트 한도의 남은 만큼만 지급했을 때 `true`다.
 
+**랭킹 구현 메모 (2026-11-21)**
+
+- `GET /rankings?type=points_weekly|reviews_monthly&date=YYYY-MM-DD`: 로그인 없이 호출. `type` 기본은 `points_weekly`, `date`는 기간 안의 아무 날짜(KST, 없거나 미래면 이번 기간). 형식이 틀리면 `422`.
+- 응답 `data`: `{type, period: {start, end, label, is_current}, updated_at, items: [{rank, user: {id, nickname, level}, score}], me, prev_date, next_date}`. `items`는 상위 100위. 같은 점수는 같은 순위. `updated_at`은 마지막 집계 시각(UTC, 집계 전이면 null). `me`는 Bearer 토큰이 있을 때 `{rank, score}`(순위에 없으면 `rank: null, score: 0`), 없으면 null. `prev_date`, `next_date`로 이전·다음 기간을 부른다(없으면 null).
+- 점수와 집계 주기는 [랭킹 정책](../../01-planning/policies/ranking-policy.md).
+
 ### 7.7 마이페이지·알림
 
 | Method | URL | 기능 | 인증 |

@@ -422,6 +422,8 @@ erDiagram
 - UNIQUE `(ranking_type, snapshot_date, user_id)`
 - 인덱스: `(ranking_type, snapshot_date, rank)`
 
+구현 메모 (2026-11-21): 마이그레이션 `2026_11_21_000009`. `snapshot_date`는 기간 시작일(주간은 월요일, 월간은 1일, KST). CHECK `ranking_type IN ('points_weekly','reviews_monthly')`, `score > 0`, `rank >= 1`. 회원이 지워지면 함께 삭제(CASCADE, 실제로는 탈퇴해도 행은 남는다). 규칙은 [랭킹 정책](../../01-planning/policies/ranking-policy.md).
+
 ---
 
 ## 9. 관심 게임 및 알림
