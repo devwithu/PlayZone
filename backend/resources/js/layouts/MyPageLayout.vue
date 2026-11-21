@@ -35,33 +35,55 @@ const tabs = [
         <section
             class="flex flex-col gap-3 rounded-lg border p-5 sm:flex-row sm:items-center sm:justify-between"
         >
-            <div class="space-y-1">
-                <p class="flex items-center gap-2 text-lg font-bold">
-                    {{ header.nickname }}
-                    <span
-                        class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
+            <div class="flex items-center gap-4">
+                <img
+                    v-if="header.profile_image_url"
+                    :src="header.profile_image_url"
+                    alt="프로필 이미지"
+                    class="size-14 shrink-0 rounded-full border object-cover"
+                />
+                <div
+                    v-else
+                    class="flex size-14 shrink-0 items-center justify-center rounded-full border bg-muted text-lg font-bold text-muted-foreground"
+                >
+                    {{ header.nickname.slice(0, 1) }}
+                </div>
+                <div class="space-y-1">
+                    <p class="flex items-center gap-2 text-lg font-bold">
+                        {{ header.nickname }}
+                        <span
+                            class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
+                        >
+                            <img
+                                v-if="header.level.icon_url"
+                                :src="header.level.icon_url"
+                                alt=""
+                                class="size-4"
+                            />
+                            {{ header.level.name }}
+                        </span>
+                    </p>
+                    <p class="text-sm text-muted-foreground">
+                        잔액
+                        <b class="text-foreground"
+                            >{{ header.point_balance.toLocaleString() }}P</b
+                        >
+                        · 누적 {{ header.lifetime_points.toLocaleString() }}P
+                        <template v-if="header.next_level">
+                            · {{ header.next_level.name }}까지
+                            {{
+                                header.next_level.points_needed.toLocaleString()
+                            }}P
+                        </template>
+                        <template v-else> · 최고 등급</template>
+                    </p>
+                    <p
+                        v-if="header.introduction"
+                        class="text-sm whitespace-pre-line"
                     >
-                        <img
-                            v-if="header.level.icon_url"
-                            :src="header.level.icon_url"
-                            alt=""
-                            class="size-4"
-                        />
-                        {{ header.level.name }}
-                    </span>
-                </p>
-                <p class="text-sm text-muted-foreground">
-                    잔액
-                    <b class="text-foreground"
-                        >{{ header.point_balance.toLocaleString() }}P</b
-                    >
-                    · 누적 {{ header.lifetime_points.toLocaleString() }}P
-                    <template v-if="header.next_level">
-                        · {{ header.next_level.name }}까지
-                        {{ header.next_level.points_needed.toLocaleString() }}P
-                    </template>
-                    <template v-else> · 최고 등급</template>
-                </p>
+                        {{ header.introduction }}
+                    </p>
+                </div>
             </div>
             <Button variant="outline" size="sm" as-child>
                 <Link :href="settings()"><Settings class="size-4" /> 설정</Link>

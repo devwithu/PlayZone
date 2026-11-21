@@ -40,7 +40,10 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 // 화면에 필요한 값만 보낸다 (이메일·토큰 등 개인정보 제외)
-                'user' => $request->user()?->only(['id', 'nickname', 'status', 'point_balance']),
+                'user' => $request->user() === null ? null : [
+                    ...$request->user()->only(['id', 'nickname', 'status', 'point_balance']),
+                    'profile_image_url' => $request->user()->loadMissing('profile')->profileImageUrl(),
+                ],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

@@ -82,6 +82,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::middleware(['auth:sanctum', 'signup.completed'])->group(function () {
         Route::get('mypage', [MyPageController::class, 'index'])->name('mypage.index');
         Route::get('mypage/reviews', [MyPageController::class, 'reviews'])->name('mypage.reviews');
+        Route::put('mypage/profile', [MyPageController::class, 'updateProfile'])->name('mypage.profile.update');
+        Route::post('mypage/profile/image', [MyPageController::class, 'updateProfileImage'])->middleware('throttle:10,1')->name('mypage.profile.image.update');
+        Route::delete('mypage/profile/image', [MyPageController::class, 'destroyProfileImage'])->name('mypage.profile.image.destroy');
+        Route::put('mypage/marketing', [MyPageController::class, 'updateMarketing'])->name('mypage.marketing.update');
         Route::get('mypage/favorites', [FavoriteController::class, 'index'])->name('mypage.favorites');
         Route::post('games/{game}/favorite', [FavoriteController::class, 'store'])->whereNumber('game')->name('games.favorite.store');
         Route::delete('games/{game}/favorite', [FavoriteController::class, 'destroy'])->whereNumber('game')->name('games.favorite.destroy');

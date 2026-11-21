@@ -28,6 +28,7 @@ class WithdrawalService
     public function __construct(
         private readonly FavoriteService $favorites,
         private readonly PointService $points,
+        private readonly ProfileService $profiles,
     ) {}
 
     public function withdraw(User $user): void
@@ -55,6 +56,7 @@ class WithdrawalService
             $user->roles()->detach();
             $this->favorites->removeAllFor($user);
             $this->points->expireOnWithdraw($user);
+            $this->profiles->deleteFor($user);
             $user->tokens()->delete();
             $this->deleteWebSessions($user);
 

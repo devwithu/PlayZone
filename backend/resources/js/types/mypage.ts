@@ -2,6 +2,8 @@
 
 export type MyPageHeader = {
     nickname: string;
+    introduction: string | null;
+    profile_image_url: string | null;
     point_balance: number;
     lifetime_points: number;
     level: {

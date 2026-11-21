@@ -6,6 +6,7 @@ export type User = {
     nickname: string | null;
     status: UserStatus;
     point_balance: number;
+    profile_image_url: string | null;
 };
 
 export type Auth = {

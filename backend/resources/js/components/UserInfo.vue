@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useInitials } from '@/composables/useInitials';
 import type { User } from '@/types';
 
@@ -15,6 +15,11 @@ const displayName = computed(() => props.user.nickname ?? '회원');
 
 <template>
     <Avatar class="h-8 w-8 overflow-hidden rounded-lg">
+        <AvatarImage
+            v-if="user.profile_image_url"
+            :src="user.profile_image_url"
+            :alt="displayName"
+        />
         <AvatarFallback class="rounded-lg text-black dark:text-white">
             {{ getInitials(displayName) }}
         </AvatarFallback>

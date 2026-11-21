@@ -17,6 +17,8 @@ class ProfileUpdateRequest extends FormRequest
     {
         return [
             'nickname' => $this->nicknameRules($this->user()->id),
+            /** 소개. 비우면 지운다 */
+            'introduction' => ['nullable', 'string', 'max:300'],
         ];
     }
 
@@ -25,6 +27,18 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['nickname' => '닉네임'];
+        return ['nickname' => '닉네임', 'introduction' => '소개'];
+    }
+
+    public function nickname(): string
+    {
+        return (string) $this->validated('nickname');
+    }
+
+    public function introduction(): ?string
+    {
+        $text = trim((string) $this->validated('introduction'));
+
+        return $text === '' ? null : $text;
     }
 }

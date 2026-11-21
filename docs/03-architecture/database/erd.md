@@ -124,6 +124,8 @@ erDiagram
 | profile_image_path | varchar(255) | NULL | |
 | introduction | varchar(300) | NULL | |
 
+구현 메모 (2026-11-21): 마이그레이션 `2026_11_21_000010`. `id`, `created_at`·`updated_at`을 두고, 회원 삭제 시 함께 삭제(CASCADE). 처음 프로필을 저장할 때 행을 만든다. 이미지는 public 디스크 `profiles/{user_id}/{uuid}.{ext}`. 탈퇴하면 행과 이미지 파일을 지운다.
+
 ### roles / role_user
 | 테이블 | 컬럼 | 제약 |
 |---|---|---|

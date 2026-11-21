@@ -26,6 +26,10 @@ class MeResource extends JsonResource
         return [
             'id' => $this->id,
             'nickname' => $this->nickname,
+            /** 소개 (300자 이내). 없으면 null */
+            'introduction' => $this->profile?->introduction,
+            /** 프로필 이미지 주소. 없으면 null */
+            'profile_image_url' => $this->profileImageUrl(),
             /** pending: 가입 미완료, active: 정상, suspended: 정지 */
             'status' => $this->status,
             'signup_completed' => ! $this->isPending(),

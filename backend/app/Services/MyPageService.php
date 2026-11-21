@@ -30,10 +30,12 @@ class MyPageService
      */
     public function header(User $user): array
     {
-        $user->loadMissing('level');
+        $user->loadMissing(['level', 'profile']);
 
         return [
             'nickname' => $user->nickname,
+            'introduction' => $user->profile?->introduction,
+            'profile_image_url' => $user->profileImageUrl(),
             'point_balance' => $user->point_balance,
             'lifetime_points' => $user->lifetime_points,
             ...$this->levels->summary($user),

@@ -10,6 +10,9 @@ Route::middleware(['auth', 'signup.completed'])->group(function () {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('settings/profile/image', [ProfileController::class, 'updateImage'])->middleware('throttle:10,1')->name('profile.image.update');
+    Route::delete('settings/profile/image', [ProfileController::class, 'destroyImage'])->name('profile.image.destroy');
+    Route::put('settings/marketing', [ProfileController::class, 'updateMarketing'])->name('profile.marketing.update');
 
     Route::inertia('settings/appearance', 'settings/Appearance')->name('appearance.edit');
 

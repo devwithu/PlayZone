@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -37,6 +38,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read UserLevel|null $level
+ * @property-read UserProfile|null $profile
  */
 #[Fillable(['email', 'email_verified_at', 'nickname'])]
 #[Hidden(['password', 'remember_token'])]
@@ -96,6 +98,24 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function socialAccounts(): HasMany
     {
         return $this->hasMany(SocialAccount::class);
+    }
+
+    /**
+     * 프로필 (소개, 프로필 이미지). 저장한 적이 없으면 null
+     *
+     * @return HasOne<UserProfile, $this>
+     */
+    public function profile(): HasOne
+    {
+        return $this->hasOne(UserProfile::class);
+    }
+
+    /**
+     * 프로필 이미지 주소. profile을 미리 불러 두면 쿼리가 늘지 않는다
+     */
+    public function profileImageUrl(): ?string
+    {
+        return $this->profile?->imageUrl();
     }
 
     /**
